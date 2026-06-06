@@ -36,12 +36,14 @@ COLOR_MUTED_FG: str = "#6B7280"  # captions / secondary text
 COLOR_WHITE: str = "#FFFFFF"
 
 # ── Interactive HTML dashboard (dark cockpit theme) ──────────────────────────
-COLOR_DASH_BG: str = "#0B1437"  # page background — deep Red Bull navy
-COLOR_DASH_SURFACE: str = "#16204A"  # card / panel surface
+COLOR_DASH_BG: str = "#000000"  # page background — pure black canvas (colour lives in accents)
+COLOR_DASH_SURFACE: str = "#0C0C0C"  # card / panel surface — near-black
 COLOR_DASH_FG: str = "#EAF0FF"  # primary text on dark
 COLOR_DASH_MUTED: str = "#8A97C2"  # captions / secondary text on dark
-COLOR_DASH_GRID: str = "#27325C"  # chart gridlines
+COLOR_DASH_GRID: str = "#1C1C1C"  # borders / axis lines — faint neutral grey
 COLOR_POSITIVE: str = "#2FD27A"  # under budget / good
 COLOR_NEGATIVE: str = "#FF4D5E"  # over budget / bad
 COLOR_DASH_GLOW: str = "rgba(54,113,198,0.45)"  # HUD accent glow — Red Bull blue, translucent
+COLOR_DASH_NEON: str = "#5BC8FF"  # bright cyan-blue — chip/tab active edges & focus rings
+COLOR_DASH_SCAN: str = "rgba(91,200,255,0.06)"  # animated scanline sweep tint
 DASH_FONT: str = "Inter, 'Segoe UI', Helvetica, Arial, sans-serif"

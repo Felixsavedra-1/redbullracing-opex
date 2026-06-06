@@ -1,8 +1,8 @@
 <h1 align="center">Red Bull Racing F1 — OPEX Analysis Pipeline</h1>
 
-<!-- Hero: drop a dashboard screenshot or GIF named dashboard.png at the repo root (or rename src below). -->
+<!-- Hero: animated GIF (dashboard.gif) capturing the live cockpit load — KPI count-up + gauge. -->
 <p align="center">
-  <img src="dashboard.png" width="85%" alt="F1 OPEX interactive dashboard — KPI cockpit, budget vs. actual, spend mix, and variance ranking" />
+  <img src="dashboard.gif" width="85%" alt="Animated F1 OPEX dashboard — KPI cockpit counting up, budget-utilisation gauge, and best/worst department callouts" />
 </p>
 
 > Turn raw F1 operating spend into an executive cockpit — variance, overspends, and recoverable savings — in two formats from one typed analysis.
@@ -11,7 +11,7 @@
   <a href="https://github.com/Felixsavedra-1/redbullracing-opex/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Felixsavedra-1/redbullracing-opex/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white" alt="CI status" /></a>
   <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11" />
   <img src="https://img.shields.io/badge/mypy-strict-2a6db0" alt="mypy strict" />
-  <img src="https://img.shields.io/badge/tests-20%20passing-brightgreen" alt="20 tests passing" />
+  <img src="https://img.shields.io/badge/tests-21%20passing-brightgreen" alt="21 tests passing" />
 </p>
 
 F1 teams run complex, multi-department budgets across hundreds of monthly transactions. This pipeline ingests (or generates) OPEX data and flags overspends and duplicate payments, then produces two executive-ready deliverables from one typed analysis — a branded **Excel workbook** and a self-contained interactive **HTML dashboard**, both opening on a cockpit view.
@@ -22,7 +22,7 @@ F1 teams run complex, multi-department budgets across hundreds of monthly transa
 - **Typed end-to-end** — `TypedDict` on every pipeline output, validated by `mypy --strict` with **zero suppressions**, so type errors surface at dev time, not runtime.
 - **Self-contained dashboard** — one `f1opex_dashboard.html` with plotly.js inlined; opens offline in any browser with full hover/zoom interactivity.
 - **Honest failures** — a custom exception hierarchy with distinct exit codes (1 = expected error, 2 = bug) and boundary column validation before any computation runs.
-- **CI-verified** — black, `mypy --strict`, and **20 tests** run on Python 3.11 and 3.12 on every push.
+- **CI-verified** — black, `mypy --strict`, and **21 tests** run on Python 3.11 and 3.12 on every push.
 
 **Stack:** Python 3.11 · pandas · numpy · xlsxwriter · plotly · pytest · mypy (strict) · black
 
@@ -43,11 +43,15 @@ Default: 500 synthetic records, year 2025, seed 42 → `opex_analysis_report.xls
 
 <br/>
 
-`f1opex_dashboard.html` — a single self-contained file (plotly.js inlined, opens offline in any browser) with a Red Bull dark cockpit theme:
+`f1opex_dashboard.html` — a single self-contained file (plotly.js inlined, opens offline in any browser) with an animated Red Bull sci-fi HUD theme:
 
-- **8 KPI tiles** — total budget, actual, variance $/%, potential savings, opportunities, depts over budget, transactions — color-coded red ▲ over / green ▼ under budget
+- **8 KPI tiles** that **count up on load** — total budget, actual, variance $/%, potential savings, opportunities, depts over budget, transactions — color-coded red ▲ over / green ▼ under budget
+- **Budget-utilisation gauge** (actual ÷ budget, green/red zone at 100%) plus **most-under-budget / biggest-overspend** callouts
 - **Budget vs. Actual** grouped bars · **spend-mix donut** (with total in the center) · **monthly trend** line · **department variance ranking** (diverging red/green bars — who's over budget at a glance)
-- **Savings opportunities** cards surfacing the money to recover
+- **Department filter chips** — toggle departments to re-render every chart **and recompute the KPIs live**
+- **Per-chart view tabs** — swap budget/variance between **$ and %**, and the monthly trend between **monthly and cumulative**
+- **Click-to-expand savings cards** — drill into the exact flagged transactions behind each opportunity
+- Staggered entrance motion, animated scanline/glow background, telemetry sweep (respects `prefers-reduced-motion`)
 - Fully interactive: hover for exact figures, zoom, pan
 
 </details>
@@ -99,7 +103,7 @@ constants.py       Single source of truth for all thresholds, colors, and defaul
 exceptions.py      Typed exception hierarchy: OpexError → DataGenerationError | ValidationError | ReportError | DashboardError
 analysis.py        Variance metrics, department rollup, monthly trends, KPI summary, savings detection
 excel_reporter.py  5-sheet .xlsx workbook: cockpit Dashboard + detail sheets, 7 styled charts
-html_dashboard.py  Interactive Plotly HTML cockpit (KPI tiles + 4 charts), self-contained / offline
+html_dashboard.py  Animated Plotly HTML cockpit (count-up KPIs, gauge, 4 charts, dept filter, drill-downs), self-contained / offline
 ```
 
 Data flows in one direction:
@@ -129,7 +133,7 @@ generate_opex_data()
 - **Vectorized RNG** — `numpy.random.default_rng(seed)` makes every synthetic dataset fully reproducible across platforms and Python versions
 - **Fail-fast column validation** — `_validate_columns()` guards every pipeline stage before any computation runs; bad data is rejected at the boundary, not mid-aggregation
 - **Per-step timing** — `TimerContext` context manager profiles each phase without cluttering business logic; visible with `--verbose`
-- **20 tests** — variance math, rollup correctness, KPI aggregation, anomaly detection, date bounds, schema validation, Excel structure (5 sheets / 7 charts) via `zipfile`, and HTML dashboard content (branding, KPI tiles, chart divs, self-contained bundle)
+- **21 tests** — variance math, rollup correctness, KPI aggregation, anomaly detection, date bounds, schema validation, Excel structure (5 sheets / 7 charts) via `zipfile`, and HTML dashboard content (branding, KPI tiles, chart divs, self-contained bundle, interactive scaffolding)
 
 </details>
 
@@ -139,7 +143,7 @@ generate_opex_data()
 <br/>
 
 ```bash
-pytest -v   # 20 tests
+pytest -v   # 21 tests
 ```
 
 CI runs black (format check), `mypy --strict`, and the full suite on Python 3.11 and 3.12 on every push and pull request.
