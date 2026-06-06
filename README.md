@@ -153,5 +153,5 @@ CI runs black (format check), `mypy --strict`, and the full suite on Python 3.11
 ---
 
 <p align="center">
-  <img src="company.JPG" width="50%" alt="Red Bull Racing" />
+  <img src="VRcompany.png" width="50%" alt="Red Bull Racing" />
 </p>
