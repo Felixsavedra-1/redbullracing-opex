@@ -1,8 +1,8 @@
 <h1 align="center">Red Bull Racing F1 — OPEX Analysis Pipeline</h1>
 
-<!-- Hero: animated GIF (dashboard.gif) capturing the live cockpit load — KPI count-up + gauge. -->
+<!-- Hero: animated GIF (dashboard.gif) — a scroll-tour of the full cockpit: KPI count-up, then every section top to bottom. Regenerate with scripts/record_dashboard_gif.py. -->
 <p align="center">
-  <img src="dashboard.gif" width="85%" alt="Animated F1 OPEX dashboard — KPI cockpit counting up, budget-utilisation gauge, and best/worst department callouts" />
+  <img src="dashboard.gif" width="85%" alt="Animated scroll-tour of the F1 OPEX dashboard — KPI cockpit counting up, budget-utilisation gauge and callouts, Budget-vs-Actual and spend-mix charts, monthly trend, department variance ranking, and savings opportunity cards" />
 </p>
 
 > Turn raw F1 operating spend into an executive cockpit — variance, overspends, and recoverable savings — in two formats from one typed analysis.

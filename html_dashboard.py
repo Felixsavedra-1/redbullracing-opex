@@ -44,7 +44,7 @@ from constants import (
 )
 from exceptions import DashboardError
 
-# Categorical palette for the spend-mix donut (Red Bull accents + harmonious tints)
+# Categorical palette for the spend-mix donut.
 _DEPT_PALETTE: tuple[str, ...] = (
     "#3671C6",
     "#E8002D",
@@ -88,7 +88,7 @@ def _style(fig: go.Figure, height: int) -> go.Figure:
         hoverlabel=dict(bgcolor=COLOR_DASH_SURFACE, bordercolor=COLOR_DASH_GRID, font_size=12),
     )
     axis = dict(
-        gridcolor="rgba(54,113,198,0.14)",  # faint blueprint grid, tied to the blue accent
+        gridcolor="rgba(54,113,198,0.14)",
         gridwidth=1,
         zerolinecolor="rgba(54,113,198,0.30)",
         linecolor=COLOR_DASH_GRID,
@@ -404,7 +404,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .hud::before { top: 9px; left: 9px; border-right: 0; border-bottom: 0; border-top-left-radius: 4px; }
 .hud::after { bottom: 9px; right: 9px; border-left: 0; border-top: 0; border-bottom-right-radius: 4px; }
 
-/* ── Animated background field (scanline sweep + breathing glow) ── */
+/* Animated background field: scanline sweep + breathing glow */
 .fx { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .fx .scan { position: absolute; left: 0; right: 0; height: 160px; top: -160px;
             background: linear-gradient(180deg, transparent, $SCAN, transparent);
@@ -416,7 +416,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
              animation: breathe 6s ease-in-out infinite; }
 @keyframes breathe { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
 
-/* ── Entrance reveal (staggered) ── */
+/* Entrance reveal (staggered) */
 .reveal { opacity: 0; transform: translateY(18px);
           transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1);
           transition-delay: calc(var(--i,0) * 55ms); }
@@ -464,7 +464,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .pos { color: $POS; text-shadow: 0 0 18px rgba(47,210,122,.42); }
 .neg { color: $NEG; text-shadow: 0 0 18px rgba(255,77,94,.42); }
 
-/* ── Vitals strip: utilisation gauge + best/worst callouts ── */
+/* Vitals strip: utilisation gauge + best/worst callouts */
 .vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 2px 0 4px; }
 .callouts { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .callout { display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -477,7 +477,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .callout.best { border-left: 4px solid $POS; }
 .callout.worst { border-left: 4px solid $NEG; }
 
-/* ── Department filter chips ── */
+/* Department filter chips */
 .filterbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 22px 2px 8px; }
 .flabel { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: $MUTED;
           margin-right: 2px; }
@@ -508,7 +508,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .cardhead h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .05em;
                text-transform: uppercase; color: $FG; }
 
-/* ── Per-chart view tabs ── */
+/* Per-chart view tabs */
 .tabs { display: inline-flex; gap: 2px; background: rgba(54,113,198,.08); border: 1px solid $GRID;
         border-radius: 9px; padding: 3px; }
 .tab { cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: $MUTED;
@@ -585,7 +585,7 @@ _JS = """
     return Math.round(v).toLocaleString();
   }
 
-  // ── KPI count-up ──
+  // KPI count-up
   function animateValue(el, to) {
     var fmt = el.dataset.format || 'int';
     var prefix = el.dataset.prefix ? el.dataset.prefix + ' ' : '';
@@ -607,7 +607,7 @@ _JS = """
     return data.depts.filter(function (d) { return active.has(d.name); });
   }
 
-  // ── Plotly styling helpers (mirrors the server-side _style) ──
+  // Plotly styling helpers (mirror the server-side _style)
   function axisStyle(extra) {
     return Object.assign({
       gridcolor: 'rgba(54,113,198,0.14)', gridwidth: 1,
@@ -734,7 +734,7 @@ _JS = """
     draw('fig-gauge', buildGauge());
   }
 
-  // ── KPI recompute from the visible department subset ──
+  // KPI recompute from the visible department subset
   function kel(id) { return document.getElementById('kpi-' + id); }
   function setKpi(id, val) { var e = kel(id); if (e) animateValue(e, val); }
   function setSigned(id, val) {
@@ -763,7 +763,7 @@ _JS = """
 
   function onFilter() { drawAll(); recompute(); }
 
-  // ── Wiring ──
+  // Wiring
   function wire() {
     document.querySelectorAll('.chip').forEach(function (c) {
       c.addEventListener('click', function () {
@@ -867,7 +867,7 @@ def build_dashboard_html(
     )
 
     over = kpis["total_variance"] > 0
-    arrow = "▲" if over else "▼"  # ▲ / ▼
+    arrow = "▲" if over else "▼"
     vcls = "neg" if over else "pos"
     depts_over = kpis["departments_over_budget"]
     total_depts = len(dept_summary)

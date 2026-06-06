@@ -8,7 +8,7 @@ import pandas as pd
 from constants import HIGH_VARIANCE_AMOUNT, HIGH_VARIANCE_PCT
 from exceptions import ValidationError
 
-# Composite key that identifies a payment — same vendor/dept/category on same day = likely duplicate
+# A payment is duplicate-suspect when these four fields match on the same day.
 _DUPLICATE_PAYMENT_KEYS: tuple[str, ...] = ("Date", "Vendor", "Department", "Expense Type")
 
 Opportunity = TypedDict(

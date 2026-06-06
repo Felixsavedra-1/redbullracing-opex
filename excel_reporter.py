@@ -47,7 +47,7 @@ def _make_formats(workbook: Any) -> dict[str, Any]:
             {"bg_color": COLOR_OVERSPEND_BG, "font_color": COLOR_OVERSPEND_FG}
         ),
         "green": workbook.add_format({"bg_color": COLOR_SAVING_BG, "font_color": COLOR_SAVING_FG}),
-        # ── Dashboard cockpit ──────────────────────────────────────────────
+        # Dashboard cockpit
         "banner_title": workbook.add_format(
             {
                 "bold": True,
@@ -148,7 +148,7 @@ def _write_dashboard(
     ws.hide_gridlines(2)
     ws.set_column("A:H", 15)
 
-    # ── Branded banner ────────────────────────────────────────────────────
+    # Branded banner
     ws.set_row(0, 32)
     ws.set_row(1, 16)
     ws.merge_range(
@@ -165,7 +165,7 @@ def _write_dashboard(
         ctx.fmts["banner_sub"],
     )
 
-    # ── KPI cards (4 across × 2 rows) ──────────────────────────────────────
+    # KPI cards (4 across, 2 rows)
     def card(top_row: int, left_col: int, caption: str, value: str, value_fmt: str) -> None:
         ws.merge_range(top_row, left_col, top_row, left_col + 1, caption, ctx.fmts["card_caption"])
         ws.merge_range(top_row + 1, left_col, top_row + 2, left_col + 1, value, ctx.fmts[value_fmt])
@@ -195,7 +195,7 @@ def _write_dashboard(
     )
     card(6, 6, "TRANSACTIONS", f"{kpis['num_transactions']:,}", "card_value")
 
-    # ── Headline charts (reference other sheets) ───────────────────────────
+    # Headline charts reference ranges on other sheets — no data is duplicated here.
     n = len(dept_summary)
     first, last = 2, 1 + n  # Executive Summary data rows
 
@@ -300,13 +300,12 @@ def _write_executive_summary(ctx: ReportContext, dept_summary: pd.DataFrame) -> 
         },
     )
 
-    # In-cell data bars on the Variance ($) column (D) for at-a-glance magnitude
+    # Data bars on the Variance ($) column for at-a-glance magnitude.
     ws.conditional_format(
         f"D3:D{2 + n}",
         {"type": "data_bar", "bar_color": COLOR_RB_BLUE},
     )
 
-    # Chart 1: Budget vs Actual side-by-side
     c1 = ctx.workbook.add_chart({"type": "column"})
     c1.add_series(
         {
@@ -330,7 +329,6 @@ def _write_executive_summary(ctx: ReportContext, dept_summary: pd.DataFrame) -> 
     _style_chart(c1)
     ws.insert_chart("G2", c1)
 
-    # Chart 2: Variance % per department
     c2 = ctx.workbook.add_chart({"type": "column"})
     c2.add_series(
         {
@@ -391,7 +389,6 @@ def _write_monthly_trends(
     # data rows: 2..(1+n_months)
     first_data, last_data = 2, 1 + n_months
 
-    # Chart 3: Monthly Budget vs Actual line chart
     c3 = ctx.workbook.add_chart({"type": "line"})
     c3.add_series(
         {
@@ -417,7 +414,7 @@ def _write_monthly_trends(
     c3.set_size({"width": 540, "height": 288})
     ws.insert_chart("E2", c3)
 
-    # Expense type breakdown — top 10 by actual spend, written manually
+    # Top expense types by actual spend, written inline rather than from a sheet range.
     expense_summary = (
         df.groupby("Expense Type", as_index=False)
         .agg({"Actual Amount": "sum"})
@@ -426,7 +423,7 @@ def _write_monthly_trends(
         .reset_index(drop=True)
     )
     n_exp = len(expense_summary)
-    exp_hdr = n_months + 3  # header row for expense table
+    exp_hdr = n_months + 3
     exp_data_start = exp_hdr + 1
     exp_data_end = exp_data_start + n_exp - 1
 
@@ -438,7 +435,6 @@ def _write_monthly_trends(
         ws.write(exp_data_start + idx, 0, expense_type)
         ws.write(exp_data_start + idx, 1, actual_amount, ctx.fmts["currency"])
 
-    # Chart 4: Expense type horizontal bar chart
     c4 = ctx.workbook.add_chart({"type": "bar"})
     c4.add_series(
         {
