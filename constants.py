@@ -37,14 +37,16 @@ COLOR_WHITE: str = "#FFFFFF"
 
 # Interactive HTML dashboard (black / bone-white / crimson theme)
 COLOR_DASH_BG: str = "#000000"
-COLOR_DASH_SURFACE: str = "#0B0B0B"
+COLOR_DASH_SURFACE: str = "#15171A"  # charcoal-tinted surface (hover tooltips, depth)
 COLOR_DASH_FG: str = "#ECE5D5"  # bone white
 COLOR_DASH_MUTED: str = "#8C857A"  # warm bone-grey
 COLOR_DASH_GRID: str = "#211C1A"  # warm near-black hairline
-COLOR_POSITIVE: str = "#3FB477"  # under budget / savings (muted green)
+COLOR_DASH_TAN: str = "#C7A06A"  # warm sand-gold accent (donut variety, neutral KPI tiles)
+COLOR_DASH_TITANIUM: str = "#9DA3A8"  # cool metallic grey (Budget series + under-budget/good)
+COLOR_DASH_CHARCOAL: str = "#2B2E33"  # charcoal grey for panel surface depth
+COLOR_POSITIVE: str = COLOR_DASH_TITANIUM  # under budget / savings (titanium grey)
 COLOR_NEGATIVE: str = "#D6203F"  # over budget (bright crimson)
 COLOR_DASH_CRIMSON: str = "#B3122B"  # deep brand crimson: chrome, "Actual" fills, donut darkest
-COLOR_DASH_BONE_DIM: str = "#B8AF9C"  # dim bone for the "Budget" data series
 COLOR_DASH_GLOW: str = "rgba(179,18,43,0.45)"  # crimson glow
 COLOR_DASH_NEON: str = "#D6203F"  # bright crimson highlight (active/hover)
 COLOR_DASH_SCAN: str = "rgba(214,32,63,0.06)"  # crimson scanline tint

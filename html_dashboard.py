@@ -28,7 +28,7 @@ import plotly.io as pio
 from analysis import KpiSummary, Opportunity
 from constants import (
     COLOR_DASH_BG,
-    COLOR_DASH_BONE_DIM,
+    COLOR_DASH_CHARCOAL,
     COLOR_DASH_CRIMSON,
     COLOR_DASH_FG,
     COLOR_DASH_GLOW,
@@ -37,22 +37,25 @@ from constants import (
     COLOR_DASH_NEON,
     COLOR_DASH_SCAN,
     COLOR_DASH_SURFACE,
+    COLOR_DASH_TAN,
+    COLOR_DASH_TITANIUM,
     COLOR_NEGATIVE,
     COLOR_POSITIVE,
     DASH_FONT,
 )
 from exceptions import DashboardError
+from formatting import compact_money
 
-# Monochrome crimson→bone ramp for the spend-mix donut (deep crimson at the top slice
-# down to bone) — keeps the wedge mix on-theme instead of multi-hue.
+# Spend-mix donut ramp — crimson largest slice through tan/grey to bone; also colours the
+# department filter-chip dots and the client-side donut.
 _DEPT_PALETTE: tuple[str, ...] = (
-    "#8E0E22",
     "#B3122B",
-    "#C6404C",
+    "#C7A06A",
+    "#9DA3A8",
     "#D2696E",
-    "#DD9090",
     "#C9B9A6",
-    "#D8CBB6",
+    "#6E7378",
+    "#8E0E22",
     "#ECE5D5",
 )
 
@@ -66,14 +69,8 @@ _DIV_VARIANCE = "fig-variance"
 _DIV_GAUGE = "fig-gauge"
 
 
-def _compact_money(value: float) -> str:
-    """Render a currency figure as a compact KPI string ($1.2M / $340K / $920)."""
-    magnitude = abs(value)
-    if magnitude >= 1_000_000:
-        return f"${value / 1_000_000:,.1f}M"
-    if magnitude >= 1_000:
-        return f"${value / 1_000:,.0f}K"
-    return f"${value:,.0f}"
+# Module-level alias kept for the test suite, which references html_dashboard._compact_money.
+_compact_money = compact_money
 
 
 def _style(fig: go.Figure, height: int) -> go.Figure:
@@ -105,7 +102,7 @@ def _budget_actual_fig(dept_summary: pd.DataFrame) -> go.Figure:
         name="Budget",
         x=dept_summary["Department"],
         y=dept_summary["Budgeted Amount"],
-        marker_color=COLOR_DASH_BONE_DIM,
+        marker_color=COLOR_DASH_TITANIUM,
         hovertemplate="%{x}<br>Budget $%{y:,.0f}<extra></extra>",
     )
     fig.add_bar(
@@ -166,7 +163,7 @@ def _monthly_trend_fig(monthly_trend: pd.DataFrame) -> go.Figure:
         x=months,
         y=monthly_trend["Budgeted Amount"],
         mode="lines+markers",
-        line=dict(color=COLOR_DASH_BONE_DIM, width=3),
+        line=dict(color=COLOR_DASH_TITANIUM, width=3),
         marker=dict(size=7),
         hovertemplate="%{x}<br>Budget $%{y:,.0f}<extra></extra>",
     )
@@ -219,7 +216,7 @@ def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
 
 
 def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
-    """Radial gauge of actual ÷ budget (%), with a green/red threshold zone at 100%."""
+    """Radial gauge of actual ÷ budget (%), with a threshold zone at 100%."""
     budget = kpis["total_budget"]
     pct = (kpis["total_actual"] / budget * 100.0) if budget else 0.0
     fig = go.Figure(
@@ -237,7 +234,7 @@ def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
                 bgcolor="rgba(0,0,0,0)",
                 borderwidth=0,
                 steps=[
-                    dict(range=[0, 100], color="rgba(63,180,119,0.12)"),
+                    dict(range=[0, 100], color="rgba(157,163,168,0.12)"),
                     dict(range=[100, 150], color="rgba(214,32,63,0.12)"),
                 ],
                 threshold=dict(line=dict(color=COLOR_DASH_FG, width=3), thickness=0.8, value=100),
@@ -277,7 +274,7 @@ def _kpi_card(
             data += f' data-suffix="{suffix}"'
     id_attr = f' id="kpi-{kpi_id}"' if kpi_id else ""
     return (
-        f'<div class="kpi hud reveal" style="--i:{idx}">'
+        f'<div class="kpi hud reveal" style="--i:{idx};border-top-color:{accent}">'
         f'<div class="cap">{caption}</div>'
         f'<div class="val {value_class}"{id_attr}{data}>{value}</div></div>'
     )
@@ -370,9 +367,8 @@ def _data_payload(
         "palette": list(_DEPT_PALETTE),
         "font": DASH_FONT,
         "colors": {
-            "blue": COLOR_DASH_BONE_DIM,  # "Budget" series (dim bone)
-            "red": COLOR_DASH_CRIMSON,  # "Actual" series (deep crimson)
-            "yellow": COLOR_POSITIVE,  # savings accents (green)
+            "blue": COLOR_DASH_TITANIUM,  # Budget series
+            "red": COLOR_DASH_CRIMSON,  # Actual series
             "pos": COLOR_POSITIVE,
             "neg": COLOR_NEGATIVE,
             "fg": COLOR_DASH_FG,
@@ -396,7 +392,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
        background-size: auto, 44px 44px, 44px 44px;
        background-attachment: fixed; }
 .wrap { max-width: 1480px; margin: 0 auto; padding: 28px 24px 52px; position: relative; z-index: 1; }
-/* HUD corner brackets — thin Red Bull-blue L's at opposite corners */
+/* HUD corner brackets — thin crimson L's at opposite corners */
 .hud { position: relative; }
 .hud::before, .hud::after { content: ""; position: absolute; width: 16px; height: 16px;
        border: 1.5px solid $BLUE; pointer-events: none;
@@ -423,7 +419,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .reveal.in { opacity: 1; transform: none; }
 
 .banner { display: flex; align-items: center; justify-content: space-between; gap: 18px;
-          background: linear-gradient(135deg, #0C0C0C, #141414); border: 1px solid $GRID;
+          background: linear-gradient(135deg, $CHARCOAL, #0C0D0F); border: 1px solid $GRID;
           border-radius: 18px; padding: 22px 28px;
           box-shadow: 0 12px 34px rgba(0,0,0,.40), inset 0 0 0 1px rgba(179,18,43,.16),
                       0 0 38px rgba(179,18,43,.12); }
@@ -434,10 +430,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
                  transform: skewX(-20deg); animation: sweep 5.5s ease-in-out infinite; }
 @keyframes sweep { 0%,14% { left: -60%; } 55%,100% { left: 135%; } }
 .banner .sub { color: $MUTED; font-size: 13px; margin-top: 6px; letter-spacing: .02em; }
-.stripe { display: flex; gap: 6px; margin-top: 14px; }
-.stripe span { height: 6px; width: 46px; border-radius: 3px; box-shadow: 0 0 10px currentColor;
-               animation: shimmer 3.5s ease-in-out infinite; }
-@keyframes shimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.65); } }
 .right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .live { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700;
         letter-spacing: .24em; text-transform: uppercase; color: $BLUE; }
@@ -450,7 +442,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
          background: rgba(179,18,43,.08); box-shadow: 0 0 20px rgba(179,18,43,.14); }
 
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 22px 0; }
-.kpi { background: linear-gradient(180deg, rgba(18,18,18,.92), rgba(10,10,10,.92));
+.kpi { background: linear-gradient(180deg, rgba(43,46,51,.55), rgba(10,11,13,.92));
        border: 1px solid $GRID; border-top: 3px solid $BLUE; border-radius: 14px;
        padding: 18px 20px 20px 22px;
        box-shadow: 0 6px 18px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04),
@@ -461,7 +453,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .kpi .cap { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: $MUTED; }
 .kpi .val { font-size: 32px; font-weight: 800; margin-top: 10px; line-height: 1.1;
             font-variant-numeric: tabular-nums; text-shadow: 0 0 18px $GLOW; }
-.pos { color: $POS; text-shadow: 0 0 18px rgba(63,180,119,.42); }
+.pos { color: $POS; text-shadow: 0 0 18px rgba(157,163,168,.42); }
 .neg { color: $NEG; text-shadow: 0 0 18px rgba(214,32,63,.42); }
 
 /* Vitals strip: utilisation gauge + best/worst callouts */
@@ -469,7 +461,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .callouts { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .callout { display: flex; align-items: center; justify-content: space-between; gap: 12px;
            border: 1px solid $GRID; border-radius: 14px; padding: 16px 20px;
-           background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
+           background: linear-gradient(180deg, rgba(43,46,51,.45), rgba(8,9,11,.86));
            box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06); }
 .callout .lab { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: $MUTED; }
 .callout .dn { font-size: 19px; font-weight: 800; margin-top: 5px; }
@@ -498,7 +490,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .chipbtn:hover { color: $FG; border-color: $NEON; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.card { background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
+.card { background: linear-gradient(180deg, rgba(43,46,51,.45), rgba(8,9,11,.86));
         border: 1px solid $GRID; border-radius: 16px; padding: 16px 16px 8px;
         box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06);
         margin-bottom: 16px; transition: box-shadow .18s ease; }
@@ -522,18 +514,18 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .section::before { content: ""; width: 22px; height: 2px; background: $BLUE; border-radius: 2px;
                    box-shadow: 0 0 10px $BLUE; }
 .savings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
-.save { background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
+.save { background: linear-gradient(180deg, rgba(43,46,51,.45), rgba(8,9,11,.86));
         border: 1px solid $GRID; border-left: 4px solid $POS; border-radius: 14px;
         padding: 16px 18px; position: relative;
         box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06);
         transition: box-shadow .18s ease; }
 .save[data-drill] { cursor: pointer; }
-.save[data-drill]:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(63,180,119,.16); }
+.save[data-drill]:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(157,163,168,.16); }
 .saveclick { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .save .t { font-weight: 700; font-size: 15px; }
 .save .n { color: $MUTED; font-size: 12px; margin-top: 4px; }
 .save .amt { font-size: 24px; font-weight: 800; color: $POS; white-space: nowrap;
-             font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(63,180,119,.35); }
+             font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(157,163,168,.35); }
 .save .chev { position: absolute; right: 16px; bottom: 12px; color: $MUTED; font-size: 13px;
               transition: transform .25s ease; }
 .save.open .chev { transform: rotate(180deg); }
@@ -557,7 +549,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .fx .scan, .fx .pulse, .banner .title::after, .live .dot, .stripe span { animation: none !important; }
+  .fx .scan, .fx .pulse, .banner .title::after, .live .dot { animation: none !important; }
 }
 """)
 
@@ -718,7 +710,7 @@ _JS = """
         number: { suffix: '%', font: { size: 30, color: C.fg } },
         gauge: { axis: { range: [0, 150], tickcolor: C.muted, tickfont: { color: C.muted, size: 9 } },
           bar: { color: pct > 100 ? C.neg : C.pos }, bgcolor: 'rgba(0,0,0,0)', borderwidth: 0,
-          steps: [{ range: [0, 100], color: 'rgba(63,180,119,0.12)' },
+          steps: [{ range: [0, 100], color: 'rgba(157,163,168,0.12)' },
                   { range: [100, 150], color: 'rgba(214,32,63,0.12)' }],
           threshold: { line: { color: C.fg, width: 3 }, thickness: 0.8, value: 100 } } }],
       layout: { height: 220, margin: { l: 18, r: 18, t: 12, b: 6 }, paper_bgcolor: 'rgba(0,0,0,0)',
@@ -842,7 +834,8 @@ def build_dashboard_html(
         GRID=COLOR_DASH_GRID,
         MUTED=COLOR_DASH_MUTED,
         SURFACE=COLOR_DASH_SURFACE,
-        BLUE=COLOR_DASH_CRIMSON,  # primary chrome accent (was Red Bull blue)
+        CHARCOAL=COLOR_DASH_CHARCOAL,
+        BLUE=COLOR_DASH_CRIMSON,  # primary chrome accent
         CRIMSON=COLOR_DASH_CRIMSON,
         POS=COLOR_POSITIVE,
         NEG=COLOR_NEGATIVE,
@@ -857,10 +850,6 @@ def build_dashboard_html(
         '<div class="title">RED BULL RACING &mdash; F1 OPEX</div>'
         f'<div class="sub">Operational expenditure cockpit &middot; FY{year} &middot; '
         f'{kpis["num_transactions"]:,} transactions &middot; generated {generated}</div>'
-        f'<div class="stripe">'
-        f'<span style="background:{COLOR_DASH_CRIMSON};color:{COLOR_DASH_CRIMSON}"></span>'
-        f'<span style="background:{COLOR_DASH_FG};color:{COLOR_DASH_FG}"></span>'
-        f'<span style="background:{COLOR_POSITIVE};color:{COLOR_POSITIVE}"></span></div>'
         '</div><div class="right">'
         '<div class="live"><span class="dot"></span>Live</div>'
         f'<div class="badge">FY{year}</div></div></div>'
@@ -925,7 +914,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Opportunities",
                 f'{kpis["num_opportunities"]}',
-                COLOR_DASH_CRIMSON,
+                COLOR_DASH_TAN,
                 idx=5,
                 kpi_id="num_opportunities",
                 target=kpis["num_opportunities"],
@@ -945,7 +934,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Transactions",
                 f'{kpis["num_transactions"]:,}',
-                COLOR_DASH_MUTED,
+                COLOR_DASH_TAN,
                 idx=7,
                 kpi_id="transactions",
                 target=kpis["num_transactions"],

@@ -24,6 +24,7 @@ from constants import (
     VARIANCE_FLAG_THRESHOLD,
 )
 from exceptions import ReportError
+from formatting import compact_money
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +48,6 @@ def _make_formats(workbook: Any) -> dict[str, Any]:
             {"bg_color": COLOR_OVERSPEND_BG, "font_color": COLOR_OVERSPEND_FG}
         ),
         "green": workbook.add_format({"bg_color": COLOR_SAVING_BG, "font_color": COLOR_SAVING_FG}),
-        # Dashboard cockpit
         "banner_title": workbook.add_format(
             {
                 "bold": True,
@@ -121,16 +121,6 @@ def _style_chart(chart: Any, *, legend: str | None = "bottom") -> None:
         chart.set_legend({"position": legend, "font": {"size": 9}})
 
 
-def _compact_money(value: float) -> str:
-    """Render a currency figure as a compact KPI string ($1.2M / $340K / $920)."""
-    magnitude = abs(value)
-    if magnitude >= 1_000_000:
-        return f"${value / 1_000_000:,.1f}M"
-    if magnitude >= 1_000:
-        return f"${value / 1_000:,.0f}K"
-    return f"${value:,.0f}"
-
-
 def _write_dashboard(
     ctx: ReportContext,
     kpis: KpiSummary,
@@ -179,12 +169,12 @@ def _write_dashboard(
     depts_over = kpis["departments_over_budget"]
     n_depts = len(dept_summary)
 
-    card(3, 0, "TOTAL BUDGET", _compact_money(kpis["total_budget"]), "card_value")
-    card(3, 2, "TOTAL ACTUAL", _compact_money(kpis["total_actual"]), "card_value")
-    card(3, 4, "TOTAL VARIANCE", f"{arrow} {_compact_money(abs(kpis['total_variance']))}", var_fmt)
+    card(3, 0, "TOTAL BUDGET", compact_money(kpis["total_budget"]), "card_value")
+    card(3, 2, "TOTAL ACTUAL", compact_money(kpis["total_actual"]), "card_value")
+    card(3, 4, "TOTAL VARIANCE", f"{arrow} {compact_money(abs(kpis['total_variance']))}", var_fmt)
     card(3, 6, "VARIANCE %", f"{arrow} {abs(kpis['variance_pct']):.1%}", var_fmt)
 
-    card(6, 0, "POTENTIAL SAVINGS", _compact_money(kpis["potential_savings"]), "card_value")
+    card(6, 0, "POTENTIAL SAVINGS", compact_money(kpis["potential_savings"]), "card_value")
     card(6, 2, "OPPORTUNITIES FLAGGED", f"{kpis['num_opportunities']}", "card_value")
     card(
         6,
@@ -195,7 +185,6 @@ def _write_dashboard(
     )
     card(6, 6, "TRANSACTIONS", f"{kpis['num_transactions']:,}", "card_value")
 
-    # Headline charts reference ranges on other sheets — no data is duplicated here.
     n = len(dept_summary)
     first, last = 2, 1 + n  # Executive Summary data rows
 

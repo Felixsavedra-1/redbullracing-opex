@@ -45,9 +45,9 @@ Default: 500 synthetic records, year 2025, seed 42 → `opex_analysis_report.xls
 
 `f1opex_dashboard.html` — a single self-contained file (plotly.js inlined, opens offline in any browser) with an animated Red Bull sci-fi HUD theme:
 
-- **8 KPI tiles** that **count up on load** — total budget, actual, variance $/%, potential savings, opportunities, depts over budget, transactions — color-coded red ▲ over / green ▼ under budget
-- **Budget-utilisation gauge** (actual ÷ budget, green/red zone at 100%) plus **most-under-budget / biggest-overspend** callouts
-- **Budget vs. Actual** grouped bars · **spend-mix donut** (with total in the center) · **monthly trend** line · **department variance ranking** (diverging red/green bars — who's over budget at a glance)
+- **8 KPI tiles** that **count up on load** — total budget, actual, variance $/%, potential savings, opportunities, depts over budget, transactions — color-coded crimson ▲ over / titanium-grey ▼ under budget
+- **Budget-utilisation gauge** (actual ÷ budget, titanium-grey/crimson zone at 100%) plus **most-under-budget / biggest-overspend** callouts
+- **Budget vs. Actual** grouped bars · **spend-mix donut** (with total in the center) · **monthly trend** line · **department variance ranking** (diverging crimson/titanium-grey bars — who's over budget at a glance)
 - **Department filter chips** — toggle departments to re-render every chart **and recompute the KPIs live**
 - **Per-chart view tabs** — swap budget/variance between **$ and %**, and the monthly trend between **monthly and cumulative**
 - **Click-to-expand savings cards** — drill into the exact flagged transactions behind each opportunity

@@ -64,7 +64,7 @@ def capture_frames(frame_dir: Path) -> int:
         page.add_style_tag(
             content=(
                 ".fx .scan, .fx .pulse, .banner .title::after, "
-                ".live .dot, .stripe span { animation: none !important; }"
+                ".live .dot { animation: none !important; }"
             )
         )
         # Let Plotly finish its first paint and the CSS reveals settle.
