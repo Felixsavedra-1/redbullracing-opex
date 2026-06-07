@@ -28,6 +28,8 @@ import plotly.io as pio
 from analysis import KpiSummary, Opportunity
 from constants import (
     COLOR_DASH_BG,
+    COLOR_DASH_BONE_DIM,
+    COLOR_DASH_CRIMSON,
     COLOR_DASH_FG,
     COLOR_DASH_GLOW,
     COLOR_DASH_GRID,
@@ -37,23 +39,21 @@ from constants import (
     COLOR_DASH_SURFACE,
     COLOR_NEGATIVE,
     COLOR_POSITIVE,
-    COLOR_RB_BLUE,
-    COLOR_RB_RED,
-    COLOR_RB_YELLOW,
     DASH_FONT,
 )
 from exceptions import DashboardError
 
-# Categorical palette for the spend-mix donut.
+# Monochrome crimson→bone ramp for the spend-mix donut (deep crimson at the top slice
+# down to bone) — keeps the wedge mix on-theme instead of multi-hue.
 _DEPT_PALETTE: tuple[str, ...] = (
-    "#3671C6",
-    "#E8002D",
-    "#FFC906",
-    "#2FD27A",
-    "#9B6CFF",
-    "#FF8A3D",
-    "#36C6C6",
-    "#FF5DA2",
+    "#8E0E22",
+    "#B3122B",
+    "#C6404C",
+    "#D2696E",
+    "#DD9090",
+    "#C9B9A6",
+    "#D8CBB6",
+    "#ECE5D5",
 )
 
 _PLOTLY_CONFIG: dict[str, Any] = {"displayModeBar": False, "responsive": True}
@@ -88,9 +88,9 @@ def _style(fig: go.Figure, height: int) -> go.Figure:
         hoverlabel=dict(bgcolor=COLOR_DASH_SURFACE, bordercolor=COLOR_DASH_GRID, font_size=12),
     )
     axis = dict(
-        gridcolor="rgba(54,113,198,0.14)",
+        gridcolor="rgba(179,18,43,0.14)",
         gridwidth=1,
-        zerolinecolor="rgba(54,113,198,0.30)",
+        zerolinecolor="rgba(179,18,43,0.30)",
         linecolor=COLOR_DASH_GRID,
         color=COLOR_DASH_MUTED,
     )
@@ -105,14 +105,14 @@ def _budget_actual_fig(dept_summary: pd.DataFrame) -> go.Figure:
         name="Budget",
         x=dept_summary["Department"],
         y=dept_summary["Budgeted Amount"],
-        marker_color=COLOR_RB_BLUE,
+        marker_color=COLOR_DASH_BONE_DIM,
         hovertemplate="%{x}<br>Budget $%{y:,.0f}<extra></extra>",
     )
     fig.add_bar(
         name="Actual",
         x=dept_summary["Department"],
         y=dept_summary["Actual Amount"],
-        marker_color=COLOR_RB_RED,
+        marker_color=COLOR_DASH_CRIMSON,
         hovertemplate="%{x}<br>Actual $%{y:,.0f}<extra></extra>",
     )
     fig.update_layout(barmode="group", bargap=0.28, bargroupgap=0.06)
@@ -166,7 +166,7 @@ def _monthly_trend_fig(monthly_trend: pd.DataFrame) -> go.Figure:
         x=months,
         y=monthly_trend["Budgeted Amount"],
         mode="lines+markers",
-        line=dict(color=COLOR_RB_BLUE, width=3),
+        line=dict(color=COLOR_DASH_BONE_DIM, width=3),
         marker=dict(size=7),
         hovertemplate="%{x}<br>Budget $%{y:,.0f}<extra></extra>",
     )
@@ -175,10 +175,10 @@ def _monthly_trend_fig(monthly_trend: pd.DataFrame) -> go.Figure:
         x=months,
         y=monthly_trend["Actual Amount"],
         mode="lines+markers",
-        line=dict(color=COLOR_RB_RED, width=3),
+        line=dict(color=COLOR_NEGATIVE, width=3),
         marker=dict(size=7),
         fill="tozeroy",
-        fillcolor="rgba(232,0,45,0.10)",
+        fillcolor="rgba(179,18,43,0.12)",
         hovertemplate="%{x}<br>Actual $%{y:,.0f}<extra></extra>",
     )
     fig.update_yaxes(tickprefix="$", tickformat="~s")
@@ -237,10 +237,10 @@ def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
                 bgcolor="rgba(0,0,0,0)",
                 borderwidth=0,
                 steps=[
-                    dict(range=[0, 100], color="rgba(47,210,122,0.12)"),
-                    dict(range=[100, 150], color="rgba(255,77,94,0.12)"),
+                    dict(range=[0, 100], color="rgba(63,180,119,0.12)"),
+                    dict(range=[100, 150], color="rgba(214,32,63,0.12)"),
                 ],
-                threshold=dict(line=dict(color=COLOR_RB_YELLOW, width=3), thickness=0.8, value=100),
+                threshold=dict(line=dict(color=COLOR_DASH_FG, width=3), thickness=0.8, value=100),
             ),
         )
     )
@@ -370,9 +370,9 @@ def _data_payload(
         "palette": list(_DEPT_PALETTE),
         "font": DASH_FONT,
         "colors": {
-            "blue": COLOR_RB_BLUE,
-            "red": COLOR_RB_RED,
-            "yellow": COLOR_RB_YELLOW,
+            "blue": COLOR_DASH_BONE_DIM,  # "Budget" series (dim bone)
+            "red": COLOR_DASH_CRIMSON,  # "Actual" series (deep crimson)
+            "yellow": COLOR_POSITIVE,  # savings accents (green)
             "pos": COLOR_POSITIVE,
             "neg": COLOR_NEGATIVE,
             "fg": COLOR_DASH_FG,
@@ -390,9 +390,9 @@ _CSS = Template("""
 body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antialiased;
        background-color: $BG;
        background-image:
-         radial-gradient(1200px 480px at 50% -10%, rgba(54,113,198,.18), transparent 70%),
-         linear-gradient(rgba(54,113,198,.045) 1px, transparent 1px),
-         linear-gradient(90deg, rgba(54,113,198,.045) 1px, transparent 1px);
+         radial-gradient(1200px 480px at 50% -10%, rgba(179,18,43,.18), transparent 70%),
+         linear-gradient(rgba(179,18,43,.045) 1px, transparent 1px),
+         linear-gradient(90deg, rgba(179,18,43,.045) 1px, transparent 1px);
        background-size: auto, 44px 44px, 44px 44px;
        background-attachment: fixed; }
 .wrap { max-width: 1480px; margin: 0 auto; padding: 28px 24px 52px; position: relative; z-index: 1; }
@@ -400,7 +400,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .hud { position: relative; }
 .hud::before, .hud::after { content: ""; position: absolute; width: 16px; height: 16px;
        border: 1.5px solid $BLUE; pointer-events: none;
-       filter: drop-shadow(0 0 4px rgba(54,113,198,.75)); }
+       filter: drop-shadow(0 0 4px rgba(179,18,43,.75)); }
 .hud::before { top: 9px; left: 9px; border-right: 0; border-bottom: 0; border-top-left-radius: 4px; }
 .hud::after { bottom: 9px; right: 9px; border-left: 0; border-top: 0; border-bottom-right-radius: 4px; }
 
@@ -412,7 +412,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 @keyframes scan { 0% { top: -160px; } 100% { top: 100%; } }
 .fx .pulse { position: absolute; top: -12%; left: 50%; width: 1200px; height: 520px;
              transform: translateX(-50%);
-             background: radial-gradient(closest-side, rgba(54,113,198,.16), transparent 70%);
+             background: radial-gradient(closest-side, rgba(179,18,43,.16), transparent 70%);
              animation: breathe 6s ease-in-out infinite; }
 @keyframes breathe { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
 
@@ -425,12 +425,12 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .banner { display: flex; align-items: center; justify-content: space-between; gap: 18px;
           background: linear-gradient(135deg, #0C0C0C, #141414); border: 1px solid $GRID;
           border-radius: 18px; padding: 22px 28px;
-          box-shadow: 0 12px 34px rgba(0,0,0,.40), inset 0 0 0 1px rgba(54,113,198,.16),
-                      0 0 38px rgba(54,113,198,.12); }
+          box-shadow: 0 12px 34px rgba(0,0,0,.40), inset 0 0 0 1px rgba(179,18,43,.16),
+                      0 0 38px rgba(179,18,43,.12); }
 .banner .title { font-size: 27px; font-weight: 800; letter-spacing: .04em; position: relative;
-                 overflow: hidden; text-shadow: 0 0 22px rgba(54,113,198,.30); }
+                 overflow: hidden; text-shadow: 0 0 22px rgba(179,18,43,.30); }
 .banner .title::after { content: ""; position: absolute; top: 0; left: -60%; width: 55%; height: 100%;
-                 background: linear-gradient(90deg, transparent, rgba(234,240,255,.35), transparent);
+                 background: linear-gradient(90deg, transparent, rgba(236,229,213,.30), transparent);
                  transform: skewX(-20deg); animation: sweep 5.5s ease-in-out infinite; }
 @keyframes sweep { 0%,14% { left: -60%; } 55%,100% { left: 135%; } }
 .banner .sub { color: $MUTED; font-size: 13px; margin-top: 6px; letter-spacing: .02em; }
@@ -443,26 +443,26 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
         letter-spacing: .24em; text-transform: uppercase; color: $BLUE; }
 .live .dot { width: 8px; height: 8px; border-radius: 50%; background: $BLUE;
              box-shadow: 0 0 8px $BLUE, 0 0 16px $BLUE; animation: blink 1.6s ease-in-out infinite; }
-@keyframes blink { 0%,100% { opacity: 1; box-shadow: 0 0 8px $BLUE, 0 0 16px rgba(54,113,198,.6); }
-                   50% { opacity: .45; box-shadow: 0 0 4px rgba(54,113,198,.4); } }
-.badge { font-size: 26px; font-weight: 800; color: $YELLOW; letter-spacing: .04em;
-         border: 1px solid $GRID; border-radius: 12px; padding: 10px 16px;
-         background: rgba(255,201,6,.06); box-shadow: 0 0 20px rgba(255,201,6,.10); }
+@keyframes blink { 0%,100% { opacity: 1; box-shadow: 0 0 8px $BLUE, 0 0 16px rgba(179,18,43,.6); }
+                   50% { opacity: .45; box-shadow: 0 0 4px rgba(179,18,43,.4); } }
+.badge { font-size: 26px; font-weight: 800; color: $FG; letter-spacing: .04em;
+         border: 1px solid $CRIMSON; border-radius: 12px; padding: 10px 16px;
+         background: rgba(179,18,43,.08); box-shadow: 0 0 20px rgba(179,18,43,.14); }
 
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 22px 0; }
 .kpi { background: linear-gradient(180deg, rgba(18,18,18,.92), rgba(10,10,10,.92));
        border: 1px solid $GRID; border-top: 3px solid $BLUE; border-radius: 14px;
        padding: 18px 20px 20px 22px;
        box-shadow: 0 6px 18px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04),
-                   0 0 0 1px rgba(54,113,198,.06);
+                   0 0 0 1px rgba(179,18,43,.06);
        transition: transform .18s ease, box-shadow .18s ease; }
 .kpi:hover { transform: translateY(-3px);
-             box-shadow: 0 12px 26px rgba(0,0,0,.34), 0 0 24px rgba(54,113,198,.22); }
+             box-shadow: 0 12px 26px rgba(0,0,0,.34), 0 0 24px rgba(179,18,43,.22); }
 .kpi .cap { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: $MUTED; }
 .kpi .val { font-size: 32px; font-weight: 800; margin-top: 10px; line-height: 1.1;
             font-variant-numeric: tabular-nums; text-shadow: 0 0 18px $GLOW; }
-.pos { color: $POS; text-shadow: 0 0 18px rgba(47,210,122,.42); }
-.neg { color: $NEG; text-shadow: 0 0 18px rgba(255,77,94,.42); }
+.pos { color: $POS; text-shadow: 0 0 18px rgba(63,180,119,.42); }
+.neg { color: $NEG; text-shadow: 0 0 18px rgba(214,32,63,.42); }
 
 /* Vitals strip: utilisation gauge + best/worst callouts */
 .vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 2px 0 4px; }
@@ -470,7 +470,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .callout { display: flex; align-items: center; justify-content: space-between; gap: 12px;
            border: 1px solid $GRID; border-radius: 14px; padding: 16px 20px;
            background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
-           box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(54,113,198,.06); }
+           box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06); }
 .callout .lab { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: $MUTED; }
 .callout .dn { font-size: 19px; font-weight: 800; margin-top: 5px; }
 .callout .cv { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -484,12 +484,12 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12px;
         font-weight: 600; color: $MUTED; letter-spacing: .02em;
-        background: rgba(54,113,198,.06); border: 1px solid $GRID; border-radius: 999px;
+        background: rgba(179,18,43,.06); border: 1px solid $GRID; border-radius: 999px;
         padding: 6px 12px; transition: color .16s ease, border-color .16s ease,
         background .16s ease, box-shadow .16s ease; }
 .chip .cdot { width: 8px; height: 8px; border-radius: 50%; opacity: .4; transition: opacity .16s ease; }
-.chip.on { color: $FG; border-color: $NEON; background: rgba(54,113,198,.16);
-           box-shadow: 0 0 14px rgba(91,200,255,.25); }
+.chip.on { color: $FG; border-color: $NEON; background: rgba(179,18,43,.16);
+           box-shadow: 0 0 14px rgba(214,32,63,.25); }
 .chip.on .cdot { opacity: 1; box-shadow: 0 0 8px currentColor; }
 .chip:hover { border-color: $NEON; }
 .chipbtn { cursor: pointer; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
@@ -500,22 +500,22 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .card { background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
         border: 1px solid $GRID; border-radius: 16px; padding: 16px 16px 8px;
-        box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(54,113,198,.06);
+        box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06);
         margin-bottom: 16px; transition: box-shadow .18s ease; }
-.card:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 24px rgba(54,113,198,.16); }
+.card:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 24px rgba(179,18,43,.16); }
 .cardhead { display: flex; align-items: center; justify-content: space-between;
             margin: 6px 6px 8px 20px; gap: 12px; }
 .cardhead h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .05em;
                text-transform: uppercase; color: $FG; }
 
 /* Per-chart view tabs */
-.tabs { display: inline-flex; gap: 2px; background: rgba(54,113,198,.08); border: 1px solid $GRID;
+.tabs { display: inline-flex; gap: 2px; background: rgba(179,18,43,.08); border: 1px solid $GRID;
         border-radius: 9px; padding: 3px; }
 .tab { cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: $MUTED;
        background: transparent; border: 0; border-radius: 6px; padding: 5px 11px;
        transition: color .15s ease, background .15s ease, box-shadow .15s ease; }
-.tab.on { color: $FG; background: linear-gradient(180deg, rgba(91,200,255,.40), rgba(54,113,198,.28));
-          box-shadow: 0 0 12px rgba(91,200,255,.32); }
+.tab.on { color: $FG; background: linear-gradient(180deg, rgba(214,32,63,.40), rgba(179,18,43,.28));
+          box-shadow: 0 0 12px rgba(214,32,63,.32); }
 
 .section { font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
            margin: 26px 4px 14px; color: $FG; display: flex; align-items: center; gap: 10px; }
@@ -523,17 +523,17 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
                    box-shadow: 0 0 10px $BLUE; }
 .savings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
 .save { background: linear-gradient(180deg, rgba(16,16,16,.86), rgba(8,8,8,.86));
-        border: 1px solid $GRID; border-left: 4px solid $YELLOW; border-radius: 14px;
+        border: 1px solid $GRID; border-left: 4px solid $POS; border-radius: 14px;
         padding: 16px 18px; position: relative;
-        box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(54,113,198,.06);
+        box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(179,18,43,.06);
         transition: box-shadow .18s ease; }
 .save[data-drill] { cursor: pointer; }
-.save[data-drill]:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(255,201,6,.16); }
+.save[data-drill]:hover { box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(63,180,119,.16); }
 .saveclick { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .save .t { font-weight: 700; font-size: 15px; }
 .save .n { color: $MUTED; font-size: 12px; margin-top: 4px; }
-.save .amt { font-size: 24px; font-weight: 800; color: $YELLOW; white-space: nowrap;
-             font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,201,6,.35); }
+.save .amt { font-size: 24px; font-weight: 800; color: $POS; white-space: nowrap;
+             font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(63,180,119,.35); }
 .save .chev { position: absolute; right: 16px; bottom: 12px; color: $MUTED; font-size: 13px;
               transition: transform .25s ease; }
 .save.open .chev { transform: rotate(180deg); }
@@ -546,7 +546,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .drill td { padding: 6px 8px; border-bottom: 1px solid rgba(39,50,92,.5); color: $FG; }
 .drill td.num { font-variant-numeric: tabular-nums; text-align: right;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.drill tr:hover td { background: rgba(54,113,198,.10); }
+.drill tr:hover td { background: rgba(179,18,43,.10); }
 .drill .more { color: $MUTED; font-size: 11px; padding: 6px 8px; }
 
 @media (max-width: 980px) {
@@ -610,8 +610,8 @@ _JS = """
   // Plotly styling helpers (mirror the server-side _style)
   function axisStyle(extra) {
     return Object.assign({
-      gridcolor: 'rgba(54,113,198,0.14)', gridwidth: 1,
-      zerolinecolor: 'rgba(54,113,198,0.30)', linecolor: C.grid, color: C.muted
+      gridcolor: 'rgba(179,18,43,0.14)', gridwidth: 1,
+      zerolinecolor: 'rgba(179,18,43,0.30)', linecolor: C.grid, color: C.muted
     }, extra || {});
   }
   function baseLayout(extra) {
@@ -681,7 +681,7 @@ _JS = """
         hovertemplate: '%{x}<br>Budget $%{y:,.0f}<extra></extra>' },
       { type: 'scatter', name: 'Actual', x: data.months, y: act, mode: 'lines+markers',
         line: { color: C.red, width: 3 }, marker: { size: 7 }, fill: 'tozeroy',
-        fillcolor: 'rgba(232,0,45,0.10)', hovertemplate: '%{x}<br>Actual $%{y:,.0f}<extra></extra>' }],
+        fillcolor: 'rgba(179,18,43,0.12)', hovertemplate: '%{x}<br>Actual $%{y:,.0f}<extra></extra>' }],
       layout: baseLayout({ yaxis: axisStyle({ tickprefix: '$', tickformat: '~s' }) }) };
   }
 
@@ -718,9 +718,9 @@ _JS = """
         number: { suffix: '%', font: { size: 30, color: C.fg } },
         gauge: { axis: { range: [0, 150], tickcolor: C.muted, tickfont: { color: C.muted, size: 9 } },
           bar: { color: pct > 100 ? C.neg : C.pos }, bgcolor: 'rgba(0,0,0,0)', borderwidth: 0,
-          steps: [{ range: [0, 100], color: 'rgba(47,210,122,0.12)' },
-                  { range: [100, 150], color: 'rgba(255,77,94,0.12)' }],
-          threshold: { line: { color: C.yellow, width: 3 }, thickness: 0.8, value: 100 } } }],
+          steps: [{ range: [0, 100], color: 'rgba(63,180,119,0.12)' },
+                  { range: [100, 150], color: 'rgba(214,32,63,0.12)' }],
+          threshold: { line: { color: C.fg, width: 3 }, thickness: 0.8, value: 100 } } }],
       layout: { height: 220, margin: { l: 18, r: 18, t: 12, b: 6 }, paper_bgcolor: 'rgba(0,0,0,0)',
         font: { color: C.fg, family: data.font } } };
   }
@@ -842,8 +842,8 @@ def build_dashboard_html(
         GRID=COLOR_DASH_GRID,
         MUTED=COLOR_DASH_MUTED,
         SURFACE=COLOR_DASH_SURFACE,
-        BLUE=COLOR_RB_BLUE,
-        YELLOW=COLOR_RB_YELLOW,
+        BLUE=COLOR_DASH_CRIMSON,  # primary chrome accent (was Red Bull blue)
+        CRIMSON=COLOR_DASH_CRIMSON,
         POS=COLOR_POSITIVE,
         NEG=COLOR_NEGATIVE,
         GLOW=COLOR_DASH_GLOW,
@@ -858,9 +858,9 @@ def build_dashboard_html(
         f'<div class="sub">Operational expenditure cockpit &middot; FY{year} &middot; '
         f'{kpis["num_transactions"]:,} transactions &middot; generated {generated}</div>'
         f'<div class="stripe">'
-        f'<span style="background:{COLOR_RB_BLUE};color:{COLOR_RB_BLUE}"></span>'
-        f'<span style="background:{COLOR_RB_RED};color:{COLOR_RB_RED}"></span>'
-        f'<span style="background:{COLOR_RB_YELLOW};color:{COLOR_RB_YELLOW}"></span></div>'
+        f'<span style="background:{COLOR_DASH_CRIMSON};color:{COLOR_DASH_CRIMSON}"></span>'
+        f'<span style="background:{COLOR_DASH_FG};color:{COLOR_DASH_FG}"></span>'
+        f'<span style="background:{COLOR_POSITIVE};color:{COLOR_POSITIVE}"></span></div>'
         '</div><div class="right">'
         '<div class="live"><span class="dot"></span>Live</div>'
         f'<div class="badge">FY{year}</div></div></div>'
@@ -876,7 +876,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Total Budget",
                 _compact_money(kpis["total_budget"]),
-                COLOR_RB_BLUE,
+                COLOR_DASH_CRIMSON,
                 idx=0,
                 kpi_id="total_budget",
                 target=kpis["total_budget"],
@@ -885,7 +885,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Total Actual",
                 _compact_money(kpis["total_actual"]),
-                COLOR_RB_RED,
+                COLOR_DASH_CRIMSON,
                 idx=1,
                 kpi_id="total_actual",
                 target=kpis["total_actual"],
@@ -894,7 +894,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Total Variance",
                 f'{arrow} {_compact_money(abs(kpis["total_variance"]))}',
-                COLOR_RB_RED,
+                COLOR_DASH_CRIMSON,
                 idx=2,
                 value_class=vcls,
                 kpi_id="total_variance",
@@ -905,7 +905,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Variance %",
                 f'{arrow} {abs(kpis["variance_pct"]):.1%}',
-                COLOR_RB_RED,
+                COLOR_DASH_CRIMSON,
                 idx=3,
                 value_class=vcls,
                 kpi_id="variance_pct",
@@ -916,7 +916,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Potential Savings",
                 _compact_money(kpis["potential_savings"]),
-                COLOR_RB_YELLOW,
+                COLOR_POSITIVE,
                 idx=4,
                 kpi_id="potential_savings",
                 target=kpis["potential_savings"],
@@ -925,7 +925,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Opportunities",
                 f'{kpis["num_opportunities"]}',
-                COLOR_RB_BLUE,
+                COLOR_DASH_CRIMSON,
                 idx=5,
                 kpi_id="num_opportunities",
                 target=kpis["num_opportunities"],
@@ -934,7 +934,7 @@ def build_dashboard_html(
             _kpi_card(
                 "Depts Over Budget",
                 f"{depts_over} / {total_depts}",
-                COLOR_RB_RED,
+                COLOR_DASH_CRIMSON,
                 idx=6,
                 value_class="neg" if depts_over else "pos",
                 kpi_id="departments_over_budget",

@@ -35,15 +35,17 @@ COLOR_CARD_FG: str = "#121F45"
 COLOR_MUTED_FG: str = "#6B7280"
 COLOR_WHITE: str = "#FFFFFF"
 
-# Interactive HTML dashboard (dark cockpit theme)
+# Interactive HTML dashboard (black / bone-white / crimson theme)
 COLOR_DASH_BG: str = "#000000"
-COLOR_DASH_SURFACE: str = "#0C0C0C"
-COLOR_DASH_FG: str = "#EAF0FF"
-COLOR_DASH_MUTED: str = "#8A97C2"
-COLOR_DASH_GRID: str = "#1C1C1C"
-COLOR_POSITIVE: str = "#2FD27A"  # under budget
-COLOR_NEGATIVE: str = "#FF4D5E"  # over budget
-COLOR_DASH_GLOW: str = "rgba(54,113,198,0.45)"
-COLOR_DASH_NEON: str = "#5BC8FF"
-COLOR_DASH_SCAN: str = "rgba(91,200,255,0.06)"
+COLOR_DASH_SURFACE: str = "#0B0B0B"
+COLOR_DASH_FG: str = "#ECE5D5"  # bone white
+COLOR_DASH_MUTED: str = "#8C857A"  # warm bone-grey
+COLOR_DASH_GRID: str = "#211C1A"  # warm near-black hairline
+COLOR_POSITIVE: str = "#3FB477"  # under budget / savings (muted green)
+COLOR_NEGATIVE: str = "#D6203F"  # over budget (bright crimson)
+COLOR_DASH_CRIMSON: str = "#B3122B"  # deep brand crimson: chrome, "Actual" fills, donut darkest
+COLOR_DASH_BONE_DIM: str = "#B8AF9C"  # dim bone for the "Budget" data series
+COLOR_DASH_GLOW: str = "rgba(179,18,43,0.45)"  # crimson glow
+COLOR_DASH_NEON: str = "#D6203F"  # bright crimson highlight (active/hover)
+COLOR_DASH_SCAN: str = "rgba(214,32,63,0.06)"  # crimson scanline tint
 DASH_FONT: str = "Inter, 'Segoe UI', Helvetica, Arial, sans-serif"
