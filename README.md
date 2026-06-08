@@ -1,4 +1,4 @@
-<h1 align="center">Red Bull Racing F1 — OPEX Analysis Pipeline</h1>
+<h1 align="center">Red Bull Racing F1 OPEX Analytics</h1>
 
 <!-- Hero: animated GIF (dashboard.gif) — a scroll-tour of the full cockpit: KPI count-up, then every section top to bottom. Regenerate with scripts/record_dashboard_gif.py. -->
 <p align="center">
