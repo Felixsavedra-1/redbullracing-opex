@@ -6,6 +6,7 @@ import pandas as pd
 import analysis
 import data_generator
 import html_dashboard
+from formatting import compact_money
 
 
 def _pipeline_outputs(
@@ -44,7 +45,7 @@ def test_build_dashboard_html_contains_branding_and_kpis() -> None:
     ):
         assert caption in html
     # A formatted KPI value made it in
-    assert html_dashboard._compact_money(kpis["total_budget"]) in html
+    assert compact_money(kpis["total_budget"]) in html
 
 
 def test_build_dashboard_html_contains_charts() -> None:

@@ -9,7 +9,7 @@ from constants import HIGH_VARIANCE_AMOUNT, HIGH_VARIANCE_PCT
 from exceptions import ValidationError
 
 # A payment is duplicate-suspect when these four fields match on the same day.
-_DUPLICATE_PAYMENT_KEYS: tuple[str, ...] = ("Date", "Vendor", "Department", "Expense Type")
+_DUPLICATE_PAYMENT_KEYS: list[str] = ["Date", "Vendor", "Department", "Expense Type"]
 
 Opportunity = TypedDict(
     "Opportunity",
@@ -122,9 +122,9 @@ def identify_savings_opportunities(df: pd.DataFrame) -> list[Opportunity]:
             }
         )
 
-    duplicates = df[df.duplicated(subset=list(_DUPLICATE_PAYMENT_KEYS), keep=False)]
+    duplicates = df[df.duplicated(subset=_DUPLICATE_PAYMENT_KEYS, keep=False)]
     if not duplicates.empty:
-        dup_groups = duplicates.groupby(list(_DUPLICATE_PAYMENT_KEYS))["Actual Amount"]
+        dup_groups = duplicates.groupby(_DUPLICATE_PAYMENT_KEYS)["Actual Amount"]
         excess_count = int((dup_groups.size() - 1).sum())
         excess_savings = float((dup_groups.sum() - dup_groups.max()).sum())
         opportunities.append(

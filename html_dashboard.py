@@ -69,10 +69,6 @@ _DIV_VARIANCE = "fig-variance"
 _DIV_GAUGE = "fig-gauge"
 
 
-# Module-level alias kept for the test suite, which references html_dashboard._compact_money.
-_compact_money = compact_money
-
-
 def _style(fig: go.Figure, height: int) -> go.Figure:
     """Apply the shared dark-cockpit look to a figure — the HTML analogue of _style_chart."""
     fig.update_layout(
@@ -141,7 +137,7 @@ def _spend_mix_fig(dept_summary: pd.DataFrame) -> go.Figure:
         legend=dict(orientation="v", x=0.72, y=0.5, font=dict(size=11)),
         annotations=[
             dict(
-                text=f"<b>{_compact_money(total)}</b><br>"
+                text=f"<b>{compact_money(total)}</b><br>"
                 f"<span style='font-size:11px;color:{COLOR_DASH_MUTED}'>Actual spend</span>",
                 x=0.33,
                 y=0.5,
@@ -192,7 +188,7 @@ def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
         y=ranked["Department"],
         x=ranked["Variance"],
         marker_color=colors,
-        text=[_compact_money(v) for v in ranked["Variance"]],
+        text=[compact_money(v) for v in ranked["Variance"]],
         textposition="outside",
         cliponaxis=False,
         hovertemplate="%{y}<br>Variance $%{x:,.0f}<extra></extra>",
@@ -301,7 +297,7 @@ def _details_table(details: list[dict[str, Any]]) -> str:
         for col in cols:
             value = record[col]
             if col in ("Variance", "Actual Amount") and isinstance(value, (int, float)):
-                cells.append(f'<td class="num">{_compact_money(float(value))}</td>')
+                cells.append(f'<td class="num">{compact_money(float(value))}</td>')
             elif col == "Date":
                 cells.append(f"<td>{pd.to_datetime(value).strftime('%d %b %Y')}</td>")
             else:
@@ -864,7 +860,7 @@ def build_dashboard_html(
         [
             _kpi_card(
                 "Total Budget",
-                _compact_money(kpis["total_budget"]),
+                compact_money(kpis["total_budget"]),
                 COLOR_DASH_CRIMSON,
                 idx=0,
                 kpi_id="total_budget",
@@ -873,7 +869,7 @@ def build_dashboard_html(
             ),
             _kpi_card(
                 "Total Actual",
-                _compact_money(kpis["total_actual"]),
+                compact_money(kpis["total_actual"]),
                 COLOR_DASH_CRIMSON,
                 idx=1,
                 kpi_id="total_actual",
@@ -882,7 +878,7 @@ def build_dashboard_html(
             ),
             _kpi_card(
                 "Total Variance",
-                f'{arrow} {_compact_money(abs(kpis["total_variance"]))}',
+                f'{arrow} {compact_money(abs(kpis["total_variance"]))}',
                 COLOR_DASH_CRIMSON,
                 idx=2,
                 value_class=vcls,
@@ -904,7 +900,7 @@ def build_dashboard_html(
             ),
             _kpi_card(
                 "Potential Savings",
-                _compact_money(kpis["potential_savings"]),
+                compact_money(kpis["potential_savings"]),
                 COLOR_POSITIVE,
                 idx=4,
                 kpi_id="potential_savings",
@@ -965,11 +961,11 @@ def build_dashboard_html(
         '<div class="callout best reveal"><div>'
         '<div class="lab">Most Under Budget</div>'
         f'<div class="dn">{best["Department"]}</div></div>'
-        f'<div class="cv pos">{_compact_money(best["Variance"])}</div></div>'
+        f'<div class="cv pos">{compact_money(best["Variance"])}</div></div>'
         '<div class="callout worst reveal"><div>'
         '<div class="lab">Biggest Overspend</div>'
         f'<div class="dn">{worst["Department"]}</div></div>'
-        f'<div class="cv neg">{_compact_money(worst["Variance"])}</div></div>'
+        f'<div class="cv neg">{compact_money(worst["Variance"])}</div></div>'
         "</div></div>"
     )
 
@@ -1026,7 +1022,7 @@ def build_dashboard_html(
             '<div class="save hud reveal" data-drill>'
             f'<div class="saveclick"><div><div class="t">{opp["Type"]}</div>'
             f'<div class="n">{opp["Count"]} item(s) flagged &middot; click to inspect</div></div>'
-            f'<div class="amt">{_compact_money(opp["Potential Savings"])}</div></div>'
+            f'<div class="amt">{compact_money(opp["Potential Savings"])}</div></div>'
             '<div class="chev">&#9662;</div>'
             f'<div class="drill">{_details_table(opp["Details"])}</div></div>'
             for opp in opportunities

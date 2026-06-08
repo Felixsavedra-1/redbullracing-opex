@@ -4,5 +4,6 @@ __pycache__/
 .DS_Store
 opex_data.csv
 opex_analysis_report.xlsx
+f1opex_analysis_report.xlsx
 f1opex_dashboard.html
 CLAUDE.md

@@ -185,8 +185,7 @@ def _write_dashboard(
     )
     card(6, 6, "TRANSACTIONS", f"{kpis['num_transactions']:,}", "card_value")
 
-    n = len(dept_summary)
-    first, last = 2, 1 + n  # Executive Summary data rows
+    first, last = 2, 1 + n_depts  # Executive Summary data rows
 
     budget_actual = ctx.workbook.add_chart({"type": "column"})
     budget_actual.add_series(
