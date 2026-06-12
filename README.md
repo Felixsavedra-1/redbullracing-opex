@@ -1,6 +1,5 @@
 # Red Bull Racing F1 OPEX Analytics
 
-<!-- Hero: animated GIF (dashboard.gif) — a scroll-tour of the full cockpit: KPI count-up, then every section top to bottom. Regenerate with scripts/record_dashboard_gif.py. -->
 <p align="center">
   <img src="dashboard.gif" width="85%" alt="Animated scroll-tour of the F1 OPEX dashboard — KPI cockpit counting up, budget-utilisation gauge and callouts, Budget-vs-Actual and spend-mix charts, monthly trend, department variance ranking, and savings opportunity cards" />
 </p>

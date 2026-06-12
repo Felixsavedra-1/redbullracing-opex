@@ -1,17 +1,8 @@
 """Interactive, self-contained HTML dashboard (Plotly) for the F1 OPEX pipeline.
 
-A pure presentation layer over the analysis outputs: a branded Red Bull "cockpit" with
-animated KPI tiles, a budget-utilisation gauge, four interactive charts, a live department
-filter, per-chart view tabs, and click-to-expand savings drill-downs — emitted as a single
-offline-capable ``.html`` file (plotly.js inlined once). Mirrors the Excel reporter's
-split — analysis *computes*, this module *renders* — and reuses the brand palette from
-``constants.py``.
-
-Interactivity is driven by a small vanilla-JS controller (no external libraries): the
-analysis outputs are embedded once as a JSON ``<script>`` payload, and the controller
-rebuilds figures with ``Plotly.react`` and recomputes the affected KPIs entirely
-client-side. The four charts are also rendered server-side so the page is meaningful with
-JavaScript disabled.
+A pure presentation layer over the analysis outputs, emitted as a single offline-capable
+``.html`` file. A vanilla-JS controller reads the analysis outputs from an embedded JSON
+payload and re-renders charts and KPIs client-side as departments are filtered.
 """
 
 from __future__ import annotations
@@ -46,8 +37,6 @@ from constants import (
 from exceptions import DashboardError
 from formatting import compact_money
 
-# Spend-mix donut ramp — crimson largest slice through tan/grey to bone; also colours the
-# department filter-chip dots and the client-side donut.
 _DEPT_PALETTE: tuple[str, ...] = (
     "#B3122B",
     "#C7A06A",
@@ -63,17 +52,11 @@ _PLOTLY_CONFIG: dict[str, Any] = {"displayModeBar": False, "responsive": True}
 
 
 def _dept_color_map(dept_summary: pd.DataFrame) -> dict[str, str]:
-    """Stable department→colour assignment, ranked by actual spend.
-
-    One shared mapping keeps the donut ramp (crimson largest → bone smallest), makes each
-    filter chip's dot match its donut slice, and pins a department to one colour no matter
-    how the client-side filter re-sorts the chart.
-    """
+    """Stable department→colour assignment, ranked by actual spend."""
     ranked = dept_summary.sort_values("Actual Amount", ascending=False)["Department"]
     return {str(d): _DEPT_PALETTE[i % len(_DEPT_PALETTE)] for i, d in enumerate(ranked)}
 
 
-# Stable div ids so the JS controller can target each figure with Plotly.react.
 _DIV_BUDGET = "fig-budget"
 _DIV_MIX = "fig-mix"
 _DIV_MONTHLY = "fig-monthly"
@@ -82,7 +65,7 @@ _DIV_GAUGE = "fig-gauge"
 
 
 def _style(fig: go.Figure, height: int) -> go.Figure:
-    """Apply the shared dark-cockpit look to a figure — the HTML analogue of _style_chart."""
+    """Apply the shared dark-cockpit look to a figure."""
     fig.update_layout(
         height=height,
         margin=dict(l=12, r=18, t=8, b=8),
@@ -96,8 +79,6 @@ def _style(fig: go.Figure, height: int) -> go.Figure:
             font=dict(size=12, family=DASH_FONT, color=COLOR_DASH_FG),
         ),
     )
-    # Bone-tinted dotted hairlines instead of solid crimson — the grid recedes so the
-    # data carries the colour.
     axis = dict(
         gridcolor="rgba(236,229,213,0.07)",
         griddash="dot",
@@ -141,9 +122,6 @@ def _budget_actual_fig(dept_summary: pd.DataFrame) -> go.Figure:
 
 
 def _spend_mix_fig(dept_summary: pd.DataFrame) -> go.Figure:
-    # Pre-sorted descending (instead of Plotly's sort) so the palette stays aligned
-    # to slice order. Slices rest flush — the JS controller animates a hover pull
-    # and an entrance sweep, so no slice looks pre-selected.
     ranked = dept_summary.sort_values("Actual Amount", ascending=False)
     fig = go.Figure(
         go.Pie(
@@ -203,7 +181,6 @@ def _monthly_trend_fig(monthly_trend: pd.DataFrame) -> go.Figure:
         x=months,
         y=monthly_trend["Actual Amount"],
         mode="lines+markers",
-        # Same colour as the "Actual" bar series — one colour per series across charts.
         line=dict(color=COLOR_DASH_CRIMSON, width=3, shape="spline", smoothing=0.75),
         marker=dict(size=7, line=dict(color=COLOR_DASH_BG, width=1.5)),
         fill="tozeroy",
@@ -223,7 +200,6 @@ def _grade_alpha(value: float, max_abs: float) -> float:
 
 
 def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
-    # Ascending → most negative at the bottom, biggest overspend at the top.
     ranked = dept_summary.sort_values("Variance")
     max_abs = float(ranked["Variance"].abs().max())
     colors = [
@@ -255,7 +231,6 @@ def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
         zerolinecolor=COLOR_DASH_MUTED,
     )
     fig = _style(fig, 420)
-    # Pad the x-range and right margin so the outside $-labels never clip the card edge.
     vmax = float(max(ranked["Variance"].max(), 0.0))
     vmin = float(min(ranked["Variance"].min(), 0.0))
     pad = (vmax - vmin) * 0.18 or 1.0
@@ -277,7 +252,7 @@ def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
                 reference=100,
                 suffix="%",
                 font=dict(size=13),
-                increasing=dict(color=COLOR_NEGATIVE),  # above budget is bad
+                increasing=dict(color=COLOR_NEGATIVE),
                 decreasing=dict(color=COLOR_POSITIVE),
             ),
             gauge=dict(
@@ -320,8 +295,7 @@ def _kpi_card(
     prefix: str = "",
     suffix: str = "",
 ) -> str:
-    """One KPI tile. ``target``/``fmt`` drive the JS count-up; ``kpi_id`` lets the
-    department filter recompute the value live."""
+    """One KPI tile; ``target``/``fmt`` drive the JS count-up and live recompute."""
     data = ""
     if target is not None:
         data = f' data-target="{target}" data-format="{fmt}"'
@@ -339,7 +313,7 @@ def _kpi_card(
 
 
 def _tabs(chart: str, options: list[tuple[str, str, bool]]) -> str:
-    """A glowing segmented control of view toggles for a chart card."""
+    """Segmented control of view toggles for a chart card."""
     btns = "".join(
         f'<button class="tab{" on" if active else ""}" data-view="{view}">{label}</button>'
         for view, label, active in options
@@ -348,7 +322,7 @@ def _tabs(chart: str, options: list[tuple[str, str, bool]]) -> str:
 
 
 def _details_table(details: list[dict[str, Any]]) -> str:
-    """Render an opportunity's flagged rows as a compact HUD table (first 12 rows)."""
+    """Render an opportunity's flagged rows as a compact table (first 12 rows)."""
     if not details:
         return '<div class="more">No line-item detail available.</div>'
     cols = list(details[0].keys())
@@ -375,12 +349,7 @@ def _data_payload(
     kpis: KpiSummary,
     df: pd.DataFrame | None,
 ) -> str:
-    """Embed everything the JS controller needs to re-render charts and recompute KPIs.
-
-    When ``df`` is provided we also embed a month×department matrix so the department
-    filter can recompute the monthly trend; without it the filter falls back to the
-    unfiltered monthly totals.
-    """
+    """Embed everything the JS controller needs to re-render charts and recompute KPIs."""
     counts: dict[Any, int] = df.groupby("Department").size().to_dict() if df is not None else {}
     depts: list[dict[str, Any]] = []
     for _, row in dept_summary.iterrows():
@@ -425,8 +394,8 @@ def _data_payload(
         "palette": list(_DEPT_PALETTE),
         "font": DASH_FONT,
         "colors": {
-            "blue": COLOR_DASH_TITANIUM,  # Budget series
-            "red": COLOR_DASH_CRIMSON,  # Actual series
+            "blue": COLOR_DASH_TITANIUM,
+            "red": COLOR_DASH_CRIMSON,
             "pos": COLOR_POSITIVE,
             "neg": COLOR_NEGATIVE,
             "fg": COLOR_DASH_FG,
@@ -452,20 +421,17 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
        background-attachment: fixed; }
 ::selection { background: rgba(214,32,63,.45); color: $FG; }
 .wrap { max-width: 1480px; margin: 0 auto; padding: 28px 24px 52px; position: relative; z-index: 1; }
-/* HUD corner brackets — thin crimson L's at opposite corners */
 .hud { position: relative; }
 .hud::before, .hud::after { content: ""; position: absolute; width: 16px; height: 16px;
-       border: 1.5px solid $BLUE; pointer-events: none;
+       border: 1.5px solid $ACCENT; pointer-events: none;
        filter: drop-shadow(0 0 4px rgba(179,18,43,.75));
        transition: top .22s ease, left .22s ease, right .22s ease, bottom .22s ease,
                    border-color .22s ease; }
 .hud::before { top: 9px; left: 9px; border-right: 0; border-bottom: 0; border-top-left-radius: 4px; }
 .hud::after { bottom: 9px; right: 9px; border-left: 0; border-top: 0; border-bottom-right-radius: 4px; }
-/* Lock-on: brackets snap toward the corners and brighten on hover */
 .hud:hover::before { top: 5px; left: 5px; border-color: $NEON; }
 .hud:hover::after { bottom: 5px; right: 5px; border-color: $NEON; }
 
-/* Animated background field: scanline sweep + breathing glow + film grain */
 .fx { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .fx .grain { position: absolute; inset: 0; opacity: .05; mix-blend-mode: overlay;
              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
@@ -479,7 +445,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
              animation: breathe 6s ease-in-out infinite; }
 @keyframes breathe { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
 
-/* Entrance reveal (staggered) */
 .reveal { opacity: 0; transform: translateY(18px);
           transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1);
           transition-delay: calc(var(--i,0) * 55ms); }
@@ -502,15 +467,14 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .banner .sub { color: $MUTED; font-size: 13px; margin-top: 6px; letter-spacing: .02em; }
 .right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .live { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700;
-        letter-spacing: .24em; text-transform: uppercase; color: $BLUE; }
-.live .dot { width: 8px; height: 8px; border-radius: 50%; background: $BLUE;
-             box-shadow: 0 0 8px $BLUE, 0 0 16px $BLUE; animation: blink 1.6s ease-in-out infinite; }
-@keyframes blink { 0%,100% { opacity: 1; box-shadow: 0 0 8px $BLUE, 0 0 16px rgba(179,18,43,.6); }
+        letter-spacing: .24em; text-transform: uppercase; color: $ACCENT; }
+.live .dot { width: 8px; height: 8px; border-radius: 50%; background: $ACCENT;
+             box-shadow: 0 0 8px $ACCENT, 0 0 16px $ACCENT; animation: blink 1.6s ease-in-out infinite; }
+@keyframes blink { 0%,100% { opacity: 1; box-shadow: 0 0 8px $ACCENT, 0 0 16px rgba(179,18,43,.6); }
                    50% { opacity: .45; box-shadow: 0 0 4px rgba(179,18,43,.4); } }
 .badge { font-size: 26px; font-weight: 800; color: $FG; letter-spacing: .04em;
          border: 1px solid $CRIMSON; border-radius: 12px; padding: 10px 16px;
          background: rgba(179,18,43,.08); box-shadow: 0 0 20px rgba(179,18,43,.14); }
-/* Banner telemetry readout: system status + live UTC clock */
 .tele { display: inline-flex; align-items: center; gap: 9px;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px;
         letter-spacing: .14em; color: $MUTED; }
@@ -521,7 +485,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .kpi { background: linear-gradient(180deg, rgba(43,46,51,.48), rgba(10,11,13,.82));
        backdrop-filter: blur(12px) saturate(1.15);
        -webkit-backdrop-filter: blur(12px) saturate(1.15);
-       border: 1px solid rgba(236,229,213,.08); border-top: 3px solid $BLUE;
+       border: 1px solid rgba(236,229,213,.08); border-top: 3px solid $ACCENT;
        border-radius: 14px; padding: 18px 20px 20px 22px;
        box-shadow: 0 6px 18px rgba(0,0,0,.28), inset 0 1px 0 rgba(236,229,213,.05),
                    0 0 0 1px rgba(179,18,43,.05);
@@ -538,7 +502,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .pos { color: $POS; text-shadow: 0 0 18px rgba(157,163,168,.42); }
 .neg { color: $NEG; text-shadow: 0 0 18px rgba(214,32,63,.42); }
 
-/* Vitals strip: utilisation gauge + best/worst callouts */
 .vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 2px 0 4px; }
 .callouts { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .callout { display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -554,7 +517,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .callout.best { border-left: 4px solid $POS; }
 .callout.worst { border-left: 4px solid $NEG; }
 
-/* Department filter chips */
 .filterbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 22px 2px 8px; }
 .flabel { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: $MUTED;
           margin-right: 2px; }
@@ -575,8 +537,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .chipbtn:hover { color: $FG; border-color: $NEON; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-/* Arc-reactor rings orbiting inside the donut hole (centred on the hole at 33%/50%,
-   matching the pie domain x=[0,0.66] and its centre annotation) */
 .mixwrap { position: relative; }
 .mixwrap .ring { position: absolute; top: 50%; left: 33%; border-radius: 50%;
                  pointer-events: none; transform: translate(-50%,-50%); }
@@ -602,7 +562,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 .cardhead h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .05em;
                text-transform: uppercase; color: $FG; }
 
-/* Per-chart view tabs */
 .tabs { display: inline-flex; gap: 2px; background: rgba(179,18,43,.08); border: 1px solid $GRID;
         border-radius: 9px; padding: 3px; }
 .tab { cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: $MUTED;
@@ -613,8 +572,8 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 
 .section { font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
            margin: 26px 4px 14px; color: $FG; display: flex; align-items: center; gap: 10px; }
-.section::before { content: ""; width: 22px; height: 2px; background: $BLUE; border-radius: 2px;
-                   box-shadow: 0 0 10px $BLUE; }
+.section::before { content: ""; width: 22px; height: 2px; background: $ACCENT; border-radius: 2px;
+                   box-shadow: 0 0 10px $ACCENT; }
 .section::after { content: ""; flex: 1; height: 1px;
                   background: linear-gradient(90deg, rgba(179,18,43,.35), transparent); }
 .savings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
@@ -656,7 +615,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
   .savings { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-  .mixwrap .ring { display: none; }  /* the donut hole shrinks below the ring diameter */
+  .mixwrap .ring { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
@@ -666,8 +625,8 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 """)
 
 
-# Vanilla-JS controller. Plain string (NOT a Template) so JS braces pass through untouched;
-# all data crosses the boundary via the JSON <script id="opex-data"> payload.
+# Plain string, not a Template: the JS contains literal "$". Data crosses the boundary
+# via the JSON <script id="opex-data"> payload only.
 _JS = """
 (function () {
   var data = JSON.parse(document.getElementById('opex-data').textContent);
@@ -678,8 +637,6 @@ _JS = """
   var views = { budget: 'abs', variance: 'abs', monthly: 'monthly' };
   var mixSeen = false;
   var mixTotal = data.depts.reduce(function (s, d) { return s + d.actual; }, 0);
-  // Stable department→colour map (actual-spend rank) — mirrors _dept_color_map so a
-  // department keeps its colour across filters and matches its chip dot.
   var deptColor = {};
   data.depts.slice().sort(function (a, b) { return b.actual - a.actual; })
     .forEach(function (d, i) { deptColor[d.name] = data.palette[i % data.palette.length]; });
@@ -696,7 +653,6 @@ _JS = """
     return Math.round(v).toLocaleString();
   }
 
-  // KPI count-up
   function animateValue(el, to) {
     var fmt = el.dataset.format || 'int';
     var prefix = el.dataset.prefix ? el.dataset.prefix + ' ' : '';
@@ -718,7 +674,6 @@ _JS = """
     return data.depts.filter(function (d) { return active.has(d.name); });
   }
 
-  // HUD text decode: scramble glyphs resolve left-to-right into the real title.
   function decode(el) {
     var fin = el.textContent;
     if (reduce || !fin) return;
@@ -737,7 +692,6 @@ _JS = """
     requestAnimationFrame(step);
   }
 
-  // Banner telemetry clock
   function tickClock() {
     var el = document.getElementById('hud-clock');
     if (!el) return;
@@ -745,7 +699,6 @@ _JS = """
     f(); setInterval(f, 1000);
   }
 
-  // Plotly styling helpers (mirror the server-side _style)
   function axisStyle(extra) {
     return Object.assign({
       gridcolor: 'rgba(236,229,213,0.07)', griddash: 'dot', gridwidth: 1,
@@ -765,7 +718,6 @@ _JS = """
       xaxis: axisStyle(), yaxis: axisStyle()
     }, extra || {});
   }
-  // Magnitude-graded fills (mirror the server-side _grade_alpha)
   function gradeColor(v, maxAbs) {
     var a = maxAbs > 0 ? 0.45 + 0.55 * Math.abs(v) / maxAbs : 1;
     return (v > 0 ? 'rgba(214,32,63,' : 'rgba(157,163,168,') + a.toFixed(2) + ')';
@@ -775,8 +727,6 @@ _JS = """
     var rows = activeRows();
     var x = rows.map(function (d) { return d.name; });
     if (views.budget === 'pct') {
-      // Utilisation view: actual as % of budget, graded by distance from the 100% line.
-      // (Variance % already has its own chart — this view answers a different question.)
       var y = rows.map(function (d) { return d.budget ? d.actual / d.budget * 100 : 0; });
       var dev = y.map(function (v) { return v - 100; });
       var mx = Math.max.apply(null, dev.map(Math.abs).concat([0]));
@@ -900,9 +850,6 @@ _JS = """
     if (window.Plotly) Plotly.react(id, spec.data, spec.layout, cfg);
   }
 
-  // Donut motion: slices rest flush; the highlight is earned by interaction.
-  // sweepMix spins the ring in on reveal/redraw, setPull eases the hovered
-  // slice outward, and the centre readout swaps to the hovered department.
   function sweepMix(dur) {
     var gd = document.getElementById('fig-mix');
     if (!gd || !window.Plotly || reduce) return;
@@ -940,8 +887,6 @@ _JS = """
     }, { threshold: 0.35 });
     io.observe(gd);
     if (!gd.on) return;
-    // A small pull plus a grace delay on retract keeps the slice from
-    // oscillating when its geometry shifts underneath the cursor.
     var hoverIdx = -1, unhoverT = 0;
     gd.on('plotly_hover', function (ev) {
       var pt = ev.points && ev.points[0];
@@ -980,7 +925,6 @@ _JS = """
     draw('fig-gauge', buildGauge());
   }
 
-  // KPI recompute from the visible department subset
   function kel(id) { return document.getElementById('kpi-' + id); }
   function setKpi(id, val) { var e = kel(id); if (e) animateValue(e, val); }
   function setSigned(id, val) {
@@ -1009,7 +953,6 @@ _JS = """
 
   function onFilter() { drawAll(); recompute(); }
 
-  // Wiring
   function wire() {
     document.querySelectorAll('.chip').forEach(function (c) {
       c.addEventListener('click', function () {
@@ -1048,7 +991,6 @@ _JS = """
 
     wireMixFx();
 
-    // Staggered entrance reveal; card/section titles decode as they come in.
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) {
@@ -1066,7 +1008,6 @@ _JS = """
     if (title) decode(title);
     tickClock();
 
-    // Count up every KPI from zero on load.
     document.querySelectorAll('.val[data-target]').forEach(function (e) {
       var to = parseFloat(e.dataset.target);
       if (reduce) { e.dataset.cur = to; }
@@ -1088,11 +1029,7 @@ def build_dashboard_html(
     year: int,
     df: pd.DataFrame | None = None,
 ) -> str:
-    """Assemble the full self-contained dashboard HTML document as a string.
-
-    ``df`` is optional: when supplied (as ``write_dashboard`` always does), the department
-    filter can also recompute the monthly trend and transaction count.
-    """
+    """Assemble the full self-contained dashboard HTML document as a string."""
     css = _CSS.substitute(
         BG=COLOR_DASH_BG,
         FG=COLOR_DASH_FG,
@@ -1101,7 +1038,7 @@ def build_dashboard_html(
         MUTED=COLOR_DASH_MUTED,
         SURFACE=COLOR_DASH_SURFACE,
         CHARCOAL=COLOR_DASH_CHARCOAL,
-        BLUE=COLOR_DASH_CRIMSON,  # primary chrome accent
+        ACCENT=COLOR_DASH_CRIMSON,
         CRIMSON=COLOR_DASH_CRIMSON,
         POS=COLOR_POSITIVE,
         NEG=COLOR_NEGATIVE,
@@ -1212,9 +1149,8 @@ def build_dashboard_html(
     )
     kpi_band = f'<div class="kpis">{kpi_cards}</div>'
 
-    # Vitals strip: utilisation gauge + best/worst department callouts.
-    # The gauge is the first figure in the document, so it inlines plotly.js once — every
-    # later chart (and the JS controller's Plotly.react calls) then reuse that single copy.
+    # The gauge is the first figure in the document: it inlines plotly.js once and every
+    # later chart reuses that single copy.
     gauge_div = pio.to_html(
         _utilization_gauge_fig(kpis),
         full_html=False,
@@ -1224,7 +1160,6 @@ def build_dashboard_html(
     )
     ranked = dept_summary.sort_values("Variance")
     best, worst = ranked.iloc[0], ranked.iloc[-1]
-    # Labels follow the sign so an all-over (or all-under) year never mislabels a callout.
     best_label = "Most Under Budget" if best["Variance"] < 0 else "Least Overspend"
     best_cls = "pos" if best["Variance"] < 0 else "neg"
     worst_label = "Biggest Overspend" if worst["Variance"] > 0 else "Closest to Budget"
@@ -1256,7 +1191,7 @@ def build_dashboard_html(
         pio.to_html(
             fig,
             full_html=False,
-            include_plotlyjs=False,  # plotly.js already inlined once by the gauge above
+            include_plotlyjs=False,
             config=_PLOTLY_CONFIG,
             div_id=div_id,
         )

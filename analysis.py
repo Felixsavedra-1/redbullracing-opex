@@ -8,7 +8,6 @@ import pandas as pd
 from constants import HIGH_VARIANCE_AMOUNT, HIGH_VARIANCE_PCT
 from exceptions import ValidationError
 
-# A payment is duplicate-suspect when these four fields match on the same day.
 _DUPLICATE_PAYMENT_KEYS: list[str] = ["Date", "Vendor", "Department", "Expense Type"]
 
 Opportunity = TypedDict(
@@ -67,7 +66,7 @@ def analyze_department_spending(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_kpis(df: pd.DataFrame, opportunities: list[Opportunity]) -> KpiSummary:
-    """Roll the analysed transactions up into headline figures for the dashboard cockpit."""
+    """Roll the analysed transactions up into headline dashboard figures."""
     _validate_columns(df, frozenset({"Department", "Budgeted Amount", "Actual Amount", "Variance"}))
     total_budget = float(df["Budgeted Amount"].sum())
     total_actual = float(df["Actual Amount"].sum())

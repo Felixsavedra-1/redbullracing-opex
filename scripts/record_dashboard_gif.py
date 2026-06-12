@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
-"""Record the README hero GIF: a scroll-tour of the full HTML dashboard.
+"""Record the README hero GIF: a scroll-tour of the HTML dashboard.
 
-Loads the self-contained ``f1opex_dashboard.html`` in headless Chromium, holds at
-the top while the KPI count-up plays, then smoothly scrolls through every section
-(gauge, charts, variance ranking, savings cards) capturing one frame per step.
-The PNG sequence is assembled into ``dashboard.gif`` with ffmpeg using a two-pass
-palette for size/quality.
-
-Run with the system Python that has Playwright + Chromium installed:
-
-    python3 scripts/record_dashboard_gif.py
+Captures ``f1opex_dashboard.html`` in headless Chromium frame by frame, then
+assembles ``dashboard.gif`` with a two-pass ffmpeg palette.
 
 Requires: playwright (+ chromium browser), ffmpeg on PATH.
 """
@@ -28,17 +21,16 @@ ROOT = Path(__file__).resolve().parent.parent
 HTML = ROOT / "f1opex_dashboard.html"
 OUT_GIF = ROOT / "dashboard.gif"
 
-# Capture / output knobs
-VIEW_W = 1000  # capture viewport width (matches the original framing)
-VIEW_H = 560  # capture viewport height
-SCALE = 2  # device scale factor for crisp text
-FPS = 12  # output GIF frame rate
-OUT_W = 720  # final GIF width (scaled down from capture)
-MAX_COLORS = 128  # palette size cap (smaller file)
+VIEW_W = 1000
+VIEW_H = 560
+SCALE = 2
+FPS = 12
+OUT_W = 720
+MAX_COLORS = 128
 
-TOP_HOLD_FRAMES = 18  # ~1.5s on the cockpit while KPIs count up
-SCROLL_FRAMES = 60  # ~5.0s scrolling through the dashboard
-BOTTOM_HOLD_FRAMES = 12  # ~1.0s resting on the savings cards
+TOP_HOLD_FRAMES = 18
+SCROLL_FRAMES = 60
+BOTTOM_HOLD_FRAMES = 12
 
 
 def _ease(p: float) -> float:
@@ -58,16 +50,14 @@ def capture_frames(frame_dir: Path) -> int:
             device_scale_factor=SCALE,
         )
         page.goto(HTML.as_uri(), wait_until="networkidle")
-        # Freeze the looping *background* fx (scanline sweep, glow pulse) so the
-        # GIF compresses between frames — without touching the KPI count-up or the
-        # entrance reveals, which are not in this selector list.
+        # Freeze the looping background fx so frames compress; the KPI count-up
+        # and entrance reveals are not in this selector list and still play.
         page.add_style_tag(
             content=(
                 ".fx .scan, .fx .pulse, .banner .title::after, "
                 ".live .dot { animation: none !important; }"
             )
         )
-        # Let Plotly finish its first paint and the CSS reveals settle.
         page.wait_for_timeout(400)
 
         def shot() -> None:
@@ -75,13 +65,11 @@ def capture_frames(frame_dir: Path) -> int:
             page.screenshot(path=str(frame_dir / f"frame_{idx:04d}.png"))
             idx += 1
 
-        # 1) Hold at the top — the 1s KPI count-up + entrance reveals.
         page.evaluate("window.scrollTo(0, 0)")
         for _ in range(TOP_HOLD_FRAMES):
             shot()
             page.wait_for_timeout(1000 // FPS)
 
-        # 2) Scroll tour from top to bottom, eased.
         max_scroll = page.evaluate("Math.max(0, document.body.scrollHeight - window.innerHeight)")
         for i in range(SCROLL_FRAMES):
             p = (i + 1) / SCROLL_FRAMES
@@ -90,7 +78,6 @@ def capture_frames(frame_dir: Path) -> int:
             page.wait_for_timeout(1000 // FPS)
             shot()
 
-        # 3) Rest on the savings cards at the bottom.
         for _ in range(BOTTOM_HOLD_FRAMES):
             shot()
             page.wait_for_timeout(1000 // FPS)
@@ -102,7 +89,6 @@ def capture_frames(frame_dir: Path) -> int:
 def build_gif(frame_dir: Path) -> None:
     palette = frame_dir / "palette.png"
     vf = f"fps={FPS},scale={OUT_W}:-1:flags=lanczos"
-    # Pass 1: generate an optimized palette from the frames.
     subprocess.run(
         [
             "ffmpeg",
@@ -118,7 +104,6 @@ def build_gif(frame_dir: Path) -> None:
         check=True,
         capture_output=True,
     )
-    # Pass 2: apply the palette with light dithering.
     subprocess.run(
         [
             "ffmpeg",

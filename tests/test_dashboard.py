@@ -32,7 +32,6 @@ def test_build_dashboard_html_contains_branding_and_kpis() -> None:
     assert html.startswith("<!DOCTYPE html>")
     assert "RED BULL RACING" in html
     assert "FY2025" in html
-    # Every KPI caption is present
     for caption in (
         "Total Budget",
         "Total Actual",
@@ -44,7 +43,6 @@ def test_build_dashboard_html_contains_branding_and_kpis() -> None:
         "Transactions",
     ):
         assert caption in html
-    # A formatted KPI value made it in
     assert compact_money(kpis["total_budget"]) in html
 
 
@@ -61,9 +59,9 @@ def test_build_dashboard_html_contains_charts() -> None:
         "Budget Utilisation",
     ):
         assert title in html
-    # Plotly emitted one interactive div per chart (4 charts + the utilisation gauge)
+    # 4 charts + the utilisation gauge
     assert html.count('class="plotly-graph-div"') == 5
-    # plotly.js is inlined once → the file is self-contained / opens offline (~MBs)
+    # plotly.js inlined → self-contained file in the MB range
     assert len(html) > 1_000_000
 
 
@@ -72,15 +70,12 @@ def test_build_dashboard_html_contains_interactive_scaffolding() -> None:
     html = html_dashboard.build_dashboard_html(
         dept_summary, opportunities, monthly_trend, kpis, year=2025, df=df
     )
-    # JSON data payload the JS controller reads, with the per-transaction matrix embedded
     assert 'id="opex-data"' in html
     assert '"hasTx": true' in html
-    # Department filter chips, KPI count-up targets, view tabs, and savings drill-downs
     assert 'class="chip on"' in html
     assert "data-target=" in html
     assert 'class="tabs"' in html
     assert "data-drill" in html
-    # Stable figure ids the controller targets with Plotly.react
     for div_id in ("fig-budget", "fig-mix", "fig-monthly", "fig-variance", "fig-gauge"):
         assert f'id="{div_id}"' in html
 

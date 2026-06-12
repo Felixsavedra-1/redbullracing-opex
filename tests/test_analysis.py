@@ -196,7 +196,6 @@ def test_monthly_trend_fills_missing_months() -> None:
 
 
 def test_duplicate_detection_uses_semantic_key() -> None:
-    # Same Date/Vendor/Dept/ExpenseType with different amounts → should be flagged as duplicate
     df_dup = pd.DataFrame(
         [
             {
@@ -223,7 +222,6 @@ def test_duplicate_detection_uses_semantic_key() -> None:
     opps = analysis.identify_savings_opportunities(df_dup)
     assert any(o["Type"] == "Potential Duplicate Payments" for o in opps)
 
-    # Same Date/Vendor/Amount but different Dept/ExpenseType → should NOT be flagged
     df_no_dup = pd.DataFrame(
         [
             {

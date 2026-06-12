@@ -128,17 +128,12 @@ def _write_dashboard(
     monthly_trend: pd.DataFrame,
     year: int,
 ) -> None:
-    """Executive cockpit: branded banner, KPI cards, and headline charts.
-
-    Charts reference ranges on the Executive Summary / Monthly Trends sheets, so the
-    dashboard never duplicates data — it is a pure presentation layer.
-    """
+    """Executive cockpit: branded banner, KPI cards, and headline charts."""
     ws = ctx.workbook.add_worksheet("Dashboard")
     ws.set_tab_color(COLOR_RB_NAVY)
     ws.hide_gridlines(2)
     ws.set_column("A:H", 15)
 
-    # Branded banner
     ws.set_row(0, 32)
     ws.set_row(1, 16)
     ws.merge_range(
@@ -155,7 +150,6 @@ def _write_dashboard(
         ctx.fmts["banner_sub"],
     )
 
-    # KPI cards (4 across, 2 rows)
     def card(top_row: int, left_col: int, caption: str, value: str, value_fmt: str) -> None:
         ws.merge_range(top_row, left_col, top_row, left_col + 1, caption, ctx.fmts["card_caption"])
         ws.merge_range(top_row + 1, left_col, top_row + 2, left_col + 1, value, ctx.fmts[value_fmt])
@@ -185,7 +179,7 @@ def _write_dashboard(
     )
     card(6, 6, "TRANSACTIONS", f"{kpis['num_transactions']:,}", "card_value")
 
-    first, last = 2, 1 + n_depts  # Executive Summary data rows
+    first, last = 2, 1 + n_depts
 
     budget_actual = ctx.workbook.add_chart({"type": "column"})
     budget_actual.add_series(
@@ -225,7 +219,7 @@ def _write_dashboard(
     ws.insert_chart("E11", spend_mix)
 
     months = len(monthly_trend)
-    m_first, m_last = 2, 1 + months  # Monthly Trends data rows
+    m_first, m_last = 2, 1 + months
     trend = ctx.workbook.add_chart({"type": "line"})
     trend.add_series(
         {
@@ -263,9 +257,6 @@ def _write_executive_summary(ctx: ReportContext, dept_summary: pd.DataFrame) -> 
     ws.set_column("B:D", 16, ctx.fmts["currency"])
     ws.set_column("E:E", 13, ctx.fmts["percent"])
 
-    # dept_summary columns (0-indexed): Department=0, Budgeted Amount=1,
-    #   Actual Amount=2, Variance=3, Variance %=4
-    # Excel rows: header at row 1, data at rows 2..(1+n)
     first_data, last_data = 2, 1 + n
 
     data_range = f"E3:E{2 + n}"
@@ -288,7 +279,6 @@ def _write_executive_summary(ctx: ReportContext, dept_summary: pd.DataFrame) -> 
         },
     )
 
-    # Data bars on the Variance ($) column for at-a-glance magnitude.
     ws.conditional_format(
         f"D3:D{2 + n}",
         {"type": "data_bar", "bar_color": COLOR_RB_BLUE},
@@ -373,8 +363,6 @@ def _write_monthly_trends(
     ws.set_column("A:A", 14, None)
     ws.set_column("B:C", 16, ctx.fmts["currency"])
 
-    # monthly_trend columns: Month Name=0, Budgeted Amount=1, Actual Amount=2
-    # data rows: 2..(1+n_months)
     first_data, last_data = 2, 1 + n_months
 
     c3 = ctx.workbook.add_chart({"type": "line"})
@@ -402,7 +390,6 @@ def _write_monthly_trends(
     c3.set_size({"width": 540, "height": 288})
     ws.insert_chart("E2", c3)
 
-    # Top expense types by actual spend, written inline rather than from a sheet range.
     expense_summary = (
         df.groupby("Expense Type", as_index=False)
         .agg({"Actual Amount": "sum"})
@@ -450,7 +437,6 @@ def _write_detailed_data(ctx: ReportContext, df: pd.DataFrame) -> None:
     ws.set_column("F:H", 16, ctx.fmts["currency"])
     ws.set_column("I:I", 13, ctx.fmts["percent"])
 
-    # Variance % column (I) — same red/green rules as Executive Summary
     data_range = f"I2:I{1 + len(df)}"
     ws.conditional_format(
         data_range,
