@@ -72,6 +72,7 @@ def _dept_color_map(dept_summary: pd.DataFrame) -> dict[str, str]:
     ranked = dept_summary.sort_values("Actual Amount", ascending=False)["Department"]
     return {str(d): _DEPT_PALETTE[i % len(_DEPT_PALETTE)] for i, d in enumerate(ranked)}
 
+
 # Stable div ids so the JS controller can target each figure with Plotly.react.
 _DIV_BUDGET = "fig-budget"
 _DIV_MIX = "fig-mix"
@@ -226,9 +227,11 @@ def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
     ranked = dept_summary.sort_values("Variance")
     max_abs = float(ranked["Variance"].abs().max())
     colors = [
-        f"rgba(214,32,63,{_grade_alpha(v, max_abs):.2f})"
-        if v > 0
-        else f"rgba(157,163,168,{_grade_alpha(v, max_abs):.2f})"
+        (
+            f"rgba(214,32,63,{_grade_alpha(v, max_abs):.2f})"
+            if v > 0
+            else f"rgba(157,163,168,{_grade_alpha(v, max_abs):.2f})"
+        )
         for v in ranked["Variance"]
     ]
     fig = go.Figure()
@@ -284,9 +287,7 @@ def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
                     ticksuffix="%",
                     tickfont=dict(color=COLOR_DASH_MUTED, size=9),
                 ),
-                bar=dict(
-                    color=COLOR_NEGATIVE if pct > 100 else COLOR_POSITIVE, thickness=0.55
-                ),
+                bar=dict(color=COLOR_NEGATIVE if pct > 100 else COLOR_POSITIVE, thickness=0.55),
                 bgcolor="rgba(0,0,0,0)",
                 borderwidth=0,
                 steps=[
