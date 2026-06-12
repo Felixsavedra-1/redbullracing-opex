@@ -49,8 +49,9 @@ Default: 500 synthetic records, year 2025, seed 42 → `opex_analysis_report.xls
 - **Budget-utilisation gauge** (actual ÷ budget, titanium-grey/crimson zone at 100%) plus **most-under-budget / biggest-overspend** callouts
 - **Budget vs. Actual** grouped bars · **spend-mix donut** (with total in the center) · **monthly trend** line · **department variance ranking** (diverging crimson/titanium-grey bars — who's over budget at a glance)
 - **Department filter chips** — toggle departments to re-render every chart **and recompute the KPIs live**
-- **Per-chart view tabs** — swap budget/variance between **$ and %**, and the monthly trend between **monthly and cumulative**
+- **Per-chart view tabs** — swap the budget chart between **$ and % utilisation** (with a 100% reference line), variance between **$ and %**, and the monthly trend between **monthly and cumulative**
 - **Click-to-expand savings cards** — drill into the exact flagged transactions behind each opportunity
+- **HUD telemetry layer** — titles decode in like a boot sequence, live UTC clock in the banner, lock-on corner brackets on hover, and counter-rotating rings orbiting the donut's center readout
 - Staggered entrance motion, animated scanline/glow background, telemetry sweep (respects `prefers-reduced-motion`)
 - Fully interactive: hover for exact figures, zoom, pan
 
