@@ -278,13 +278,11 @@ def test_department_expense_type_consistency() -> None:
 def test_compute_kpis_totals_and_variance(sample_df: pd.DataFrame) -> None:
     df = analysis.calculate_variance(sample_df)
     kpis = analysis.compute_kpis(df, [])
-    # sample_df: budget 10k+10k+20k = 40k, actual 17k+17k+19k = 53k
     assert kpis["total_budget"] == pytest.approx(40000.0)
     assert kpis["total_actual"] == pytest.approx(53000.0)
     assert kpis["total_variance"] == pytest.approx(13000.0)
     assert kpis["variance_pct"] == pytest.approx(13000.0 / 40000.0)
     assert kpis["num_transactions"] == 3
-    # Aerodynamics is over budget (+14k), Logistics under (-1k)
     assert kpis["departments_over_budget"] == 1
 
 

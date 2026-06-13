@@ -1,10 +1,3 @@
-"""Interactive, self-contained HTML dashboard (Plotly) for the F1 OPEX pipeline.
-
-A pure presentation layer over the analysis outputs, emitted as a single offline-capable
-``.html`` file. A vanilla-JS controller reads the analysis outputs from an embedded JSON
-payload and re-renders charts and KPIs client-side as departments are filtered.
-"""
-
 from __future__ import annotations
 
 import json
@@ -52,7 +45,6 @@ _PLOTLY_CONFIG: dict[str, Any] = {"displayModeBar": False, "responsive": True}
 
 
 def _dept_color_map(dept_summary: pd.DataFrame) -> dict[str, str]:
-    """Stable department→colour assignment, ranked by actual spend."""
     ranked = dept_summary.sort_values("Actual Amount", ascending=False)["Department"]
     return {str(d): _DEPT_PALETTE[i % len(_DEPT_PALETTE)] for i, d in enumerate(ranked)}
 
@@ -65,7 +57,6 @@ _DIV_GAUGE = "fig-gauge"
 
 
 def _style(fig: go.Figure, height: int) -> go.Figure:
-    """Apply the shared dark-cockpit look to a figure."""
     fig.update_layout(
         height=height,
         margin=dict(l=12, r=18, t=8, b=8),
@@ -193,7 +184,6 @@ def _monthly_trend_fig(monthly_trend: pd.DataFrame) -> go.Figure:
 
 
 def _grade_alpha(value: float, max_abs: float) -> float:
-    """Map |value| to a fill opacity so bar colour intensity tracks magnitude."""
     if max_abs <= 0:
         return 1.0
     return 0.45 + 0.55 * (abs(value) / max_abs)
@@ -240,7 +230,6 @@ def _variance_ranking_fig(dept_summary: pd.DataFrame) -> go.Figure:
 
 
 def _utilization_gauge_fig(kpis: KpiSummary) -> go.Figure:
-    """Radial gauge of actual ÷ budget (%), with a threshold zone at 100%."""
     budget = kpis["total_budget"]
     pct = (kpis["total_actual"] / budget * 100.0) if budget else 0.0
     fig = go.Figure(
@@ -295,7 +284,6 @@ def _kpi_card(
     prefix: str = "",
     suffix: str = "",
 ) -> str:
-    """One KPI tile; ``target``/``fmt`` drive the JS count-up and live recompute."""
     data = ""
     if target is not None:
         data = f' data-target="{target}" data-format="{fmt}"'
@@ -313,7 +301,6 @@ def _kpi_card(
 
 
 def _tabs(chart: str, options: list[tuple[str, str, bool]]) -> str:
-    """Segmented control of view toggles for a chart card."""
     btns = "".join(
         f'<button class="tab{" on" if active else ""}" data-view="{view}">{label}</button>'
         for view, label, active in options
@@ -322,7 +309,6 @@ def _tabs(chart: str, options: list[tuple[str, str, bool]]) -> str:
 
 
 def _details_table(details: list[dict[str, Any]]) -> str:
-    """Render an opportunity's flagged rows as a compact table (first 12 rows)."""
     if not details:
         return '<div class="more">No line-item detail available.</div>'
     cols = list(details[0].keys())
@@ -349,7 +335,6 @@ def _data_payload(
     kpis: KpiSummary,
     df: pd.DataFrame | None,
 ) -> str:
-    """Embed everything the JS controller needs to re-render charts and recompute KPIs."""
     counts: dict[Any, int] = df.groupby("Department").size().to_dict() if df is not None else {}
     depts: list[dict[str, Any]] = []
     for _, row in dept_summary.iterrows():
@@ -458,6 +443,11 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
           border-radius: 18px; padding: 22px 28px;
           box-shadow: 0 12px 34px rgba(0,0,0,.40), inset 0 1px 0 rgba(236,229,213,.06),
                       inset 0 0 0 1px rgba(179,18,43,.14), 0 0 38px rgba(179,18,43,.10); }
+.brand { display: flex; flex-direction: column; gap: 1px; margin-bottom: 10px; line-height: 1.1; }
+.brand-name { font-size: 13px; font-weight: 800; letter-spacing: .18em;
+              text-transform: uppercase; color: $FG; }
+.brand-by { font-size: 9.5px; font-weight: 700; letter-spacing: .26em;
+            text-transform: uppercase; color: $ACCENT; }
 .banner .title { font-size: 27px; font-weight: 800; letter-spacing: .04em; position: relative;
                  overflow: hidden; text-shadow: 0 0 22px rgba(179,18,43,.30); }
 .banner .title::after { content: ""; position: absolute; top: 0; left: -60%; width: 55%; height: 100%;
@@ -1029,7 +1019,6 @@ def build_dashboard_html(
     year: int,
     df: pd.DataFrame | None = None,
 ) -> str:
-    """Assemble the full self-contained dashboard HTML document as a string."""
     css = _CSS.substitute(
         BG=COLOR_DASH_BG,
         FG=COLOR_DASH_FG,
@@ -1050,6 +1039,8 @@ def build_dashboard_html(
     generated = datetime.now().strftime("%d %b %Y")
     banner = (
         '<div class="banner hud reveal"><div>'
+        '<div class="brand"><span class="brand-name">Vedra Research</span>'
+        '<span class="brand-by">Powered by Claude</span></div>'
         '<div class="title">RED BULL RACING &mdash; F1 OPEX</div>'
         f'<div class="sub">Operational expenditure cockpit &middot; FY{year} &middot; '
         f'{kpis["num_transactions"]:,} transactions &middot; generated {generated}</div>'
@@ -1286,7 +1277,6 @@ def write_dashboard(
     output_file: str = "f1opex_dashboard.html",
     year: int | None = None,
 ) -> None:
-    """Build the interactive dashboard and write it to ``output_file`` as a single HTML file."""
     if dept_summary.empty:
         raise DashboardError("Cannot generate dashboard: department summary is empty.")
 

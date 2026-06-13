@@ -68,7 +68,6 @@ if _extra or _missing:
 
 
 def _inject_demo_anomalies(df: pd.DataFrame) -> pd.DataFrame:
-    """Append two deterministic anomaly rows: one high-variance overspend and one duplicate payment."""
     source = df.iloc[0].copy()
 
     overspend = source.copy()
@@ -90,7 +89,6 @@ def generate_opex_data(
     seed: int | None = 42,
     inject_anomalies: bool = True,
 ) -> pd.DataFrame:
-    """Simulate transactional OPEX data for a single calendar year."""
     if inject_anomalies and num_records < 1:
         raise DataGenerationError("num_records must be at least 1 to inject demo anomalies.")
 

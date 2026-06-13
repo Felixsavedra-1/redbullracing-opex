@@ -111,7 +111,6 @@ def _make_formats(workbook: Any) -> dict[str, Any]:
 
 
 def _style_chart(chart: Any, *, legend: str | None = "bottom") -> None:
-    """Apply a consistent, de-cluttered look to every chart in the workbook."""
     chart.set_style(2)
     chart.set_chartarea({"border": {"none": True}})
     chart.set_plotarea({"border": {"none": True}})
@@ -128,7 +127,6 @@ def _write_dashboard(
     monthly_trend: pd.DataFrame,
     year: int,
 ) -> None:
-    """Executive cockpit: branded banner, KPI cards, and headline charts."""
     ws = ctx.workbook.add_worksheet("Dashboard")
     ws.set_tab_color(COLOR_RB_NAVY)
     ws.hide_gridlines(2)
@@ -467,7 +465,6 @@ def create_excel_report(
     output_file: str = "opex_analysis_report.xlsx",
     year: int | None = None,
 ) -> None:
-    """Write a 5-sheet Excel workbook (cockpit Dashboard + 4 detail sheets) with 7 charts."""
     if dept_summary.empty:
         raise ReportError("Cannot generate report: department summary is empty.")
 

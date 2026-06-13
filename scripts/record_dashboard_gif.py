@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Record the README hero GIF: a scroll-tour of the HTML dashboard.
-
-Captures ``f1opex_dashboard.html`` in headless Chromium frame by frame, then
-assembles ``dashboard.gif`` with a two-pass ffmpeg palette.
-
-Requires: playwright (+ chromium browser), ffmpeg on PATH.
-"""
-
 from __future__ import annotations
 
 import shutil
@@ -26,15 +18,14 @@ VIEW_H = 560
 SCALE = 2
 FPS = 12
 OUT_W = 720
-MAX_COLORS = 128
+MAX_COLORS = 96
 
-TOP_HOLD_FRAMES = 18
-SCROLL_FRAMES = 60
-BOTTOM_HOLD_FRAMES = 12
+TOP_HOLD_FRAMES = 24
+SCROLL_FRAMES = 120
+BOTTOM_HOLD_FRAMES = 18
 
 
 def _ease(p: float) -> float:
-    """Ease-in-out so the scroll accelerates then settles."""
     return 3 * p * p - 2 * p * p * p
 
 

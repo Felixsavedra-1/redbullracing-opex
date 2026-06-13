@@ -59,9 +59,7 @@ def test_build_dashboard_html_contains_charts() -> None:
         "Budget Utilisation",
     ):
         assert title in html
-    # 4 charts + the utilisation gauge
     assert html.count('class="plotly-graph-div"') == 5
-    # plotly.js inlined → self-contained file in the MB range
     assert len(html) > 1_000_000
 
 

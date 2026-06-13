@@ -1,4 +1,3 @@
-# Data generation
 BUDGET_MIN: float = 1_000.0
 BUDGET_MAX: float = 100_000.0
 ACTUAL_MEAN_RATIO: float = 1.0
@@ -7,16 +6,13 @@ ACTUAL_UPPER_CAP: float = 5.0
 ANOMALY_BUDGET: float = 50_000.0
 ANOMALY_ACTUAL: float = 120_000.0
 
-# Analysis thresholds
 HIGH_VARIANCE_PCT: float = 0.50
 HIGH_VARIANCE_AMOUNT: float = 5_000.0
 
-# CLI defaults
 DEFAULT_RECORDS: int = 500
 DEFAULT_YEAR: int = 2025
 DEFAULT_SEED: int = 42
 
-# Excel report
 COLOR_HEADER_BG: str = "#D3D3D3"
 COLOR_OVERSPEND_BG: str = "#FFC7CE"
 COLOR_OVERSPEND_FG: str = "#9C0006"
@@ -27,7 +23,6 @@ COLOR_RB_RED: str = "#E8002D"
 VARIANCE_FLAG_THRESHOLD: float = 0.10
 TOP_EXPENSE_TYPES: int = 10
 
-# Excel dashboard cockpit
 COLOR_RB_NAVY: str = "#121F45"
 COLOR_RB_YELLOW: str = "#FFC906"
 COLOR_CARD_BG: str = "#F2F4F8"
@@ -35,7 +30,6 @@ COLOR_CARD_FG: str = "#121F45"
 COLOR_MUTED_FG: str = "#6B7280"
 COLOR_WHITE: str = "#FFFFFF"
 
-# Interactive HTML dashboard (black / bone-white / crimson theme)
 COLOR_DASH_BG: str = "#000000"
 COLOR_DASH_SURFACE: str = "#15171A"
 COLOR_DASH_FG: str = "#ECE5D5"

@@ -22,8 +22,6 @@ Opportunity = TypedDict(
 
 
 class KpiSummary(TypedDict):
-    """Headline figures rendered as KPI cards on the dashboard."""
-
     total_budget: float
     total_actual: float
     total_variance: float
@@ -41,12 +39,10 @@ def _validate_columns(df: pd.DataFrame, required: frozenset[str]) -> None:
 
 
 def _safe_divide(numerator: pd.Series[float], denominator: pd.Series[float]) -> pd.Series[float]:
-    """Divide with zero protection, returning 0 when denominator is 0."""
     return (numerator / denominator.replace(0, float("nan"))).fillna(0.0)
 
 
 def calculate_variance(df: pd.DataFrame) -> pd.DataFrame:
-    """Add absolute and percentage variance columns."""
     _validate_columns(df, frozenset({"Budgeted Amount", "Actual Amount"}))
     df = df.copy()
     variance = df["Actual Amount"] - df["Budgeted Amount"]
@@ -56,7 +52,6 @@ def calculate_variance(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def analyze_department_spending(df: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate spending and variance by department."""
     _validate_columns(df, frozenset({"Department", "Budgeted Amount", "Actual Amount", "Variance"}))
     grouped = df.groupby("Department", as_index=False).agg(
         {"Budgeted Amount": "sum", "Actual Amount": "sum", "Variance": "sum"}
@@ -66,7 +61,6 @@ def analyze_department_spending(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_kpis(df: pd.DataFrame, opportunities: list[Opportunity]) -> KpiSummary:
-    """Roll the analysed transactions up into headline dashboard figures."""
     _validate_columns(df, frozenset({"Department", "Budgeted Amount", "Actual Amount", "Variance"}))
     total_budget = float(df["Budgeted Amount"].sum())
     total_actual = float(df["Actual Amount"].sum())
@@ -85,7 +79,6 @@ def compute_kpis(df: pd.DataFrame, opportunities: list[Opportunity]) -> KpiSumma
 
 
 def compute_monthly_trend(df: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate budget and actual spend by calendar month, always returning all 12 months."""
     _validate_columns(df, frozenset({"Date", "Budgeted Amount", "Actual Amount"}))
     month_names = [calendar.month_abbr[m] for m in range(1, 13)]
     grouped = (
@@ -100,7 +93,6 @@ def compute_monthly_trend(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def identify_savings_opportunities(df: pd.DataFrame) -> list[Opportunity]:
-    """Flag large overspends and duplicate payments."""
     opportunities: list[Opportunity] = []
 
     overspend_mask = (df["Budgeted Amount"] > 0) & (df["Variance %"] > HIGH_VARIANCE_PCT)
