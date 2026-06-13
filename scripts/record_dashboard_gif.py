@@ -41,8 +41,6 @@ def capture_frames(frame_dir: Path) -> int:
             device_scale_factor=SCALE,
         )
         page.goto(HTML.as_uri(), wait_until="networkidle")
-        # Freeze the looping background fx so frames compress; the KPI count-up
-        # and entrance reveals are not in this selector list and still play.
         page.add_style_tag(
             content=(
                 ".fx .scan, .fx .pulse, .banner .title::after, "

@@ -445,7 +445,7 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
                       inset 0 0 0 1px rgba(179,18,43,.14), 0 0 38px rgba(179,18,43,.10); }
 .brand { display: flex; flex-direction: column; gap: 1px; margin-bottom: 10px; line-height: 1.1; }
 .brand-name { font-size: 13px; font-weight: 800; letter-spacing: .18em;
-              text-transform: uppercase; color: $FG; }
+              color: $FG; }
 .brand-by { font-size: 9.5px; font-weight: 700; letter-spacing: .26em;
             text-transform: uppercase; color: $ACCENT; }
 .banner .title { font-size: 27px; font-weight: 800; letter-spacing: .04em; position: relative;
@@ -615,8 +615,6 @@ body { margin: 0; color: $FG; font-family: $FONT; -webkit-font-smoothing: antial
 """)
 
 
-# Plain string, not a Template: the JS contains literal "$". Data crosses the boundary
-# via the JSON <script id="opex-data"> payload only.
 _JS = """
 (function () {
   var data = JSON.parse(document.getElementById('opex-data').textContent);
@@ -1140,8 +1138,6 @@ def build_dashboard_html(
     )
     kpi_band = f'<div class="kpis">{kpi_cards}</div>'
 
-    # The gauge is the first figure in the document: it inlines plotly.js once and every
-    # later chart reuses that single copy.
     gauge_div = pio.to_html(
         _utilization_gauge_fig(kpis),
         full_html=False,
